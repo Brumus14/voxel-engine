@@ -4,7 +4,7 @@
 #include "../util/gl.h"
 #include "image.h"
 
-void gui_init(gui *gui, window *window) {
+void gui_init(struct gui *gui, struct window *window) {
     gui->window = window;
     gui->element_count = 0;
     gui->elements = NULL;
@@ -17,7 +17,7 @@ void gui_init(gui *gui, window *window) {
         glGetUniformLocation(gui->shader_program.gl_id, "orthographic"), GLint);
 }
 
-void gui_update_matrix_uniform(gui *gui) {
+void gui_update_matrix_uniform(struct gui *gui) {
     mat4 glm_orthographic;
     glm_ortho(0, gui->window->width, gui->window->height, 0, -1, 1,
               glm_orthographic);
@@ -26,7 +26,7 @@ void gui_update_matrix_uniform(gui *gui) {
                                GL_FALSE, glm_orthographic[0]));
 }
 
-void gui_draw(gui *gui) {
+void gui_draw(struct gui *gui) {
     shader_program_use(&gui->shader_program);
     gui_update_matrix_uniform(gui);
 
@@ -39,15 +39,15 @@ void gui_draw(gui *gui) {
     }
 }
 
-void gui_add_element(gui *gui, gui_element element) {
-    gui->elements =
-        realloc(gui->elements, (gui->element_count + 1) * sizeof(gui_element));
+void gui_add_element(struct gui *gui, struct gui_element element) {
+    gui->elements = realloc(gui->elements, (gui->element_count + 1) *
+                                               sizeof(struct gui_element));
     gui->elements[gui->element_count] = element;
     gui->element_count++;
 }
 
-void gui_add_image(gui *gui, gui_image *image) {
-    gui_element element;
+void gui_add_image(struct gui *gui, struct gui_image *image) {
+    struct gui_element element;
 
     element.data = image;
     element.type = GUI_ELEMENT_TYPE_IMAGE;
@@ -55,7 +55,7 @@ void gui_add_image(gui *gui, gui_image *image) {
     gui_add_element(gui, element);
 }
 
-void gui_destroy(gui *gui) {
+void gui_destroy(struct gui *gui) {
     free(gui->elements);
     shader_program_destroy(&gui->shader_program);
 }

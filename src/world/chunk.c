@@ -78,7 +78,8 @@
 //     return false;
 // }
 
-void chunk_init(chunk *chunk, vector3i position, tilemap *tilemap) {
+void chunk_init(struct chunk *chunk, struct vec3i position,
+                struct tilemap *tilemap) {
     chunk->position = position;
     atomic_init(&chunk->state, CHUNK_STATE_NEEDS_TERRAIN);
     atomic_init(&chunk->unloaded, false);
@@ -96,7 +97,7 @@ void chunk_init(chunk *chunk, vector3i position, tilemap *tilemap) {
     chunk->ibo.gl_id = 0;
 }
 
-void chunk_destroy(chunk *chunk) {
+void chunk_destroy(struct chunk *chunk) {
     pthread_mutex_destroy(&chunk->lock);
     free(chunk->vertices);
     free(chunk->indices);
@@ -105,7 +106,7 @@ void chunk_destroy(chunk *chunk) {
 // TODO: Pass in other neighbors too or just get from world
 // Having to specify struct is kind of weird
 // TODO: Implement greedy meshing
-// void chunk_update_mesh(chunk *chunk, world *world) {
+// void chunk_update_mesh(struct chunk *chunk, world *world) {
 //     chunk->face_count = 0;
 //
 //     // Probably not efficient
@@ -161,8 +162,8 @@ void chunk_destroy(chunk *chunk) {
 //
 //                         // dont think blocks are positioned correctly as
 //                         block
-//                         // origin back top left but chunk is back bottom left
-//                         chunk->vertices[vertex_index] +=
+//                         // origin back top left but struct chunk is back
+//                         bottom left chunk->vertices[vertex_index] +=
 //                             x + chunk->position.x * CHUNK_SIZE_X;
 //                         chunk->vertices[vertex_index + 1] +=
 //                             y + chunk->position.y * CHUNK_SIZE_Y;
@@ -224,7 +225,7 @@ void chunk_destroy(chunk *chunk) {
 //     }
 // }
 
-void chunk_update_buffers(chunk *chunk) {
+void chunk_update_buffers(struct chunk *chunk) {
     vao_destroy(&chunk->vao);
     bo_destroy(&chunk->vbo);
     bo_destroy(&chunk->ibo);
@@ -253,7 +254,7 @@ void chunk_update_buffers(chunk *chunk) {
 }
 
 // bind texture
-void chunk_draw(chunk *chunk) {
+void chunk_draw(struct chunk *chunk) {
     // if (atomic_load(&chunk->visible) == false) { TODO: Reimplement
     //     return;
     // }
@@ -270,44 +271,45 @@ void chunk_draw(chunk *chunk) {
 }
 
 // Maybe return all faces to call less times
-bool is_block_face_active(chunk *chunk, vector3i position, block_face face) {
+bool is_block_face_active(struct chunk *chunk, struct vec3i position,
+                          enum block_face face) {
     switch (face) {
     case BLOCK_FACE_FRONT:
         return (position.z < CHUNK_SIZE_Z - 1 &&
-                chunk_get_block(chunk, (vector3i){position.x, position.y,
-                                                  position.z + 1}) ==
+                chunk_get_block(chunk, (struct vec3i){position.x, position.y,
+                                                      position.z + 1}) ==
                     BLOCK_TYPE_EMPTY);
     case BLOCK_FACE_TOP:
         return (position.y < CHUNK_SIZE_Y - 1 &&
-                chunk_get_block(chunk, (vector3i){position.x, position.y + 1,
-                                                  position.z}) ==
-                    BLOCK_TYPE_EMPTY);
+                chunk_get_block(
+                    chunk, (struct vec3i){position.x, position.y + 1,
+                                          position.z}) == BLOCK_TYPE_EMPTY);
     case BLOCK_FACE_RIGHT:
         return (position.x < CHUNK_SIZE_X - 1 &&
-                chunk_get_block(chunk, (vector3i){position.x + 1, position.y,
-                                                  position.z}) ==
-                    BLOCK_TYPE_EMPTY);
+                chunk_get_block(
+                    chunk, (struct vec3i){position.x + 1, position.y,
+                                          position.z}) == BLOCK_TYPE_EMPTY);
     case BLOCK_FACE_BOTTOM:
         return (position.y > 0 &&
-                chunk_get_block(chunk, (vector3i){position.x, position.y - 1,
-                                                  position.z}) ==
-                    BLOCK_TYPE_EMPTY);
+                chunk_get_block(
+                    chunk, (struct vec3i){position.x, position.y - 1,
+                                          position.z}) == BLOCK_TYPE_EMPTY);
     case BLOCK_FACE_LEFT:
         return (position.x > 0 &&
-                chunk_get_block(chunk, (vector3i){position.x - 1, position.y,
-                                                  position.z}) ==
-                    BLOCK_TYPE_EMPTY);
+                chunk_get_block(
+                    chunk, (struct vec3i){position.x - 1, position.y,
+                                          position.z}) == BLOCK_TYPE_EMPTY);
     case BLOCK_FACE_BACK:
         return (position.z > 0 &&
-                chunk_get_block(chunk, (vector3i){position.x, position.y,
-                                                  position.z - 1}) ==
+                chunk_get_block(chunk, (struct vec3i){position.x, position.y,
+                                                      position.z - 1}) ==
                     BLOCK_TYPE_EMPTY);
     }
 
     return false;
 }
 
-void chunk_generate_mesh(chunk *chunk) {
+void chunk_generate_mesh(struct chunk *chunk) {
     pthread_mutex_lock(&chunk->lock);
 
     chunk->face_count = 0;
@@ -316,10 +318,10 @@ void chunk_generate_mesh(chunk *chunk) {
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
             for (int x = 0; x < CHUNK_SIZE_X; x++) {
-                if (chunk_get_block(chunk, (vector3i){x, y, z}) !=
+                if (chunk_get_block(chunk, (struct vec3i){x, y, z}) !=
                     BLOCK_TYPE_EMPTY) {
                     for (int i = 0; i < 6; i++) {
-                        if (is_block_face_active(chunk, (vector3i){x, y, z},
+                        if (is_block_face_active(chunk, (struct vec3i){x, y, z},
                                                  i)) {
                             chunk->face_count++;
                         }
@@ -340,13 +342,14 @@ void chunk_generate_mesh(chunk *chunk) {
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
             for (int x = 0; x < CHUNK_SIZE_X; x++) {
-                if (chunk_get_block(chunk, (vector3i){x, y, z}) ==
+                if (chunk_get_block(chunk, (struct vec3i){x, y, z}) ==
                     BLOCK_TYPE_EMPTY) {
                     continue;
                 }
 
                 for (int f = 0; f < 6; f++) {
-                    if (!is_block_face_active(chunk, (vector3i){x, y, z}, f)) {
+                    if (!is_block_face_active(chunk, (struct vec3i){x, y, z},
+                                              f)) {
                         continue;
                     }
 
@@ -365,18 +368,22 @@ void chunk_generate_mesh(chunk *chunk) {
                                3 * sizeof(float));
 
                         // dont think blocks are positioned correctly as
-                        // origin back top left but chunk is back bottom
+                        // origin back top left but struct chunk is back bottom
                         // left
-                        chunk->vertices[vertex_index] += x;
-                        chunk->vertices[vertex_index + 1] += y;
-                        chunk->vertices[vertex_index + 2] += z;
+                        chunk->vertices[vertex_index] +=
+                            x + chunk->position.x * CHUNK_SIZE_X;
+                        chunk->vertices[vertex_index + 1] +=
+                            y + chunk->position.y * CHUNK_SIZE_Y;
+                        chunk->vertices[vertex_index + 2] +=
+                            z + chunk->position.z * CHUNK_SIZE_Z;
                     }
 
-                    rectangle texture_rectangle = tilemap_get_tile_rectangle(
-                        chunk->tilemap,
-                        block_type_to_texture(
-                            chunk_get_block(chunk, (vector3i){x, y, z}))
-                            .face_texture_indices[f]);
+                    struct rectangle texture_rectangle =
+                        tilemap_get_tile_rectangle(
+                            chunk->tilemap,
+                            block_type_to_texture(
+                                chunk_get_block(chunk, (struct vec3i){x, y, z}))
+                                .face_texture_indices[f]);
 
                     int vertex_1_index = face_index;
                     int vertex_2_index = face_index + CHUNK_VERTEX_SIZE;
@@ -422,29 +429,35 @@ void chunk_generate_mesh(chunk *chunk) {
             }
         }
     }
+
+    pthread_mutex_unlock(&chunk->lock);
 }
 
-inline block_type chunk_get_block(chunk *chunk, vector3i position) {
+inline enum block_type chunk_get_block(struct chunk *chunk,
+                                       struct vec3i position) {
     return chunk->blocks[position.x + position.y * CHUNK_SIZE_X +
                          position.z * (CHUNK_SIZE_X * CHUNK_SIZE_Y)];
 }
 
-inline block_type chunk_get_block_safe(chunk *chunk, vector3i position) {
+inline enum block_type chunk_get_block_safe(struct chunk *chunk,
+                                            struct vec3i position) {
     pthread_mutex_lock(&chunk->lock);
-    block_type type = chunk->blocks[position.x + position.y * CHUNK_SIZE_X +
-                                    position.z * (CHUNK_SIZE_X * CHUNK_SIZE_Y)];
+    enum block_type type =
+        chunk->blocks[position.x + position.y * CHUNK_SIZE_X +
+                      position.z * (CHUNK_SIZE_X * CHUNK_SIZE_Y)];
     pthread_mutex_unlock(&chunk->lock);
 
     return type;
 }
 
-inline void chunk_set_block(chunk *chunk, vector3i position, block_type type) {
+inline void chunk_set_block(struct chunk *chunk, struct vec3i position,
+                            enum block_type type) {
     chunk->blocks[position.x + position.y * CHUNK_SIZE_X +
                   position.z * (CHUNK_SIZE_X * CHUNK_SIZE_Y)] = type;
 }
 
-inline void chunk_set_block_safe(chunk *chunk, vector3i position,
-                                 block_type type) {
+inline void chunk_set_block_safe(struct chunk *chunk, struct vec3i position,
+                                 enum block_type type) {
     pthread_mutex_lock(&chunk->lock);
     chunk->blocks[position.x + position.y * CHUNK_SIZE_X +
                   position.z * (CHUNK_SIZE_X * CHUNK_SIZE_Y)] = type;

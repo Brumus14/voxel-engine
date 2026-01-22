@@ -1,6 +1,6 @@
 #include "items.h"
 
-block_type item_type_to_block_type(item_type type) {
+enum block_type item_type_to_block_type(enum item_type type) {
     switch (type) {
     case ITEM_TYPE_GRASS_BLOCK:
         return BLOCK_TYPE_GRASS;
@@ -19,7 +19,7 @@ block_type item_type_to_block_type(item_type type) {
     }
 }
 
-item_type block_type_to_item_type(block_type type) {
+enum item_type block_type_to_item_type(enum block_type type) {
     switch (type) {
     case BLOCK_TYPE_GRASS:
         return ITEM_TYPE_GRASS_BLOCK;
@@ -38,7 +38,7 @@ item_type block_type_to_item_type(block_type type) {
     }
 }
 
-int item_type_to_texture_index(item_type type) {
+int item_type_to_texture_index(enum item_type type) {
     switch (type) {
     case ITEM_TYPE_GRASS_BLOCK:
         return 0;

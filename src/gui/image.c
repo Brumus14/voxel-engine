@@ -3,18 +3,18 @@
 #include "../graphics/renderer.h"
 
 // create function to set origin
-void gui_image_update(gui_image *gui_image) {
+void gui_image_update(struct gui_image *gui_image) {
     bo_bind(&gui_image->vbo);
 
     // add option to set image origin which changes vertices
     float z = (float)gui_image->layer * (1.0 / GUI_ELEMENT_LAYER_LAST);
-    rectangle *rect = &gui_image->texture_rectangle;
+    struct rectangle *rect = &gui_image->texture_rectangle;
 
     float vertices[4][5] = {
-        {0.0, 1.0, z, rect->x,               rect->y + rect->height},
+        {0.0, 1.0, z, rect->x, rect->y + rect->height},
         {1.0, 1.0, z, rect->x + rect->width, rect->y + rect->height},
-        {1.0, 0.0, z, rect->x + rect->width, rect->y               },
-        {0.0, 0.0, z, rect->x,               rect->y               },
+        {1.0, 0.0, z, rect->x + rect->width, rect->y},
+        {0.0, 0.0, z, rect->x, rect->y},
     };
 
     // Adjust vertices for horizontal origin
@@ -84,11 +84,12 @@ void gui_image_update(gui_image *gui_image) {
 }
 
 // paramter for texture filter
-void gui_image_init(gui_image *gui_image, char *image_path, vector2d position,
-                    vector2d scale, gui_element_origin origin,
-                    gui_element_layer layer) {
+void gui_image_init(struct gui_image *gui_image, char *image_path,
+                    struct vec2d position, struct vec2d scale,
+                    enum gui_element_origin origin,
+                    enum gui_element_layer layer) {
     gui_image->visible = true;
-    gui_image->texture_rectangle = (rectangle){0, 0, 1, 1};
+    gui_image->texture_rectangle = (struct rectangle){0, 0, 1, 1};
     gui_image->position = position;
     gui_image->scale = scale;
     gui_image->origin = origin;
@@ -119,7 +120,7 @@ void gui_image_init(gui_image *gui_image, char *image_path, vector2d position,
     gui_image_update(gui_image);
 }
 
-void gui_image_draw(gui_image *gui_image) {
+void gui_image_draw(struct gui_image *gui_image) {
     if (!gui_image->visible) {
         return;
     }
@@ -133,29 +134,30 @@ void gui_image_draw(gui_image *gui_image) {
                            INDEX_TYPE_UNSIGNED_INT);
 }
 
-void gui_image_set_visible(gui_image *gui_image, bool visible) {
+void gui_image_set_visible(struct gui_image *gui_image, bool visible) {
     gui_image->visible = visible;
     gui_image_update(gui_image);
 }
 
-void gui_image_destroy(gui_image *gui_image) {
+void gui_image_destroy(struct gui_image *gui_image) {
     vao_destroy(&gui_image->vao);
     bo_destroy(&gui_image->vbo);
     bo_destroy(&gui_image->ibo);
 }
 
-void gui_image_set_scale(gui_image *gui_image, vector2d scale) {
+void gui_image_set_scale(struct gui_image *gui_image, struct vec2d scale) {
     gui_image->scale = scale;
     gui_image_update(gui_image);
 }
 
-void gui_image_set_position(gui_image *gui_image, vector2d position) {
+void gui_image_set_position(struct gui_image *gui_image,
+                            struct vec2d position) {
     gui_image->position = position;
     gui_image_update(gui_image);
 }
 
-void gui_image_set_texture_rectangle(gui_image *gui_image,
-                                     rectangle texture_rectangle) {
+void gui_image_set_texture_rectangle(struct gui_image *gui_image,
+                                     struct rectangle texture_rectangle) {
     gui_image->texture_rectangle = texture_rectangle;
     gui_image_update(gui_image);
 }

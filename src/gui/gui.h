@@ -4,17 +4,18 @@
 #include "../graphics/window.h"
 #include "../graphics/shader_program.h"
 #include "gui_element.h"
+#include "image.h"
 
-typedef struct gui {
-    gui_element *elements;
+struct gui {
+    struct gui_element *elements;
     int element_count;
-    window *window;
-    shader_program shader_program;
+    struct window *window;
+    struct shader_program shader_program;
     int gl_orthographic_matrix_location;
-} gui;
+};
 
-void gui_init(gui *gui, window *window);
-void gui_draw(gui *gui);
-void gui_add_image(gui *gui, gui_image *image);
+void gui_init(struct gui *gui, struct window *window);
+void gui_draw(struct gui *gui);
+void gui_add_image(struct gui *gui, struct gui_image *image);
 
 #endif

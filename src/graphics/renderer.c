@@ -34,14 +34,14 @@ void renderer_set_viewport(int x, int y, int width, int height) {
     GL_CALL(glViewport(x, y, width, height));
 }
 
-GLenum to_gl_draw_mode(draw_mode mode) {
+GLenum to_gl_draw_mode(enum draw_mode mode) {
     switch (mode) {
     case DRAW_MODE_TRIANGLES:
         return GL_TRIANGLES;
     }
 }
 
-GLenum to_gl_polygon_mode(polygon_mode mode) {
+GLenum to_gl_polygon_mode(enum polygon_mode mode) {
     switch (mode) {
     case POLYGON_MODE_FILL:
         return GL_FILL;
@@ -50,7 +50,7 @@ GLenum to_gl_polygon_mode(polygon_mode mode) {
     }
 }
 
-GLenum to_gl_index_type(index_type type) {
+GLenum to_gl_index_type(enum index_type type) {
     switch (type) {
     case INDEX_TYPE_UNSIGNED_INT:
         return GL_UNSIGNED_INT;
@@ -61,11 +61,12 @@ GLenum to_gl_index_type(index_type type) {
     }
 }
 
-void renderer_draw_elements(draw_mode mode, int count, index_type type) {
+void renderer_draw_elements(enum draw_mode mode, int count,
+                            enum index_type type) {
     GL_CALL(glDrawElements(to_gl_draw_mode(mode), count, to_gl_index_type(type),
                            0));
 }
 
-void renderer_set_polygon_mode(polygon_mode mode) {
+void renderer_set_polygon_mode(enum polygon_mode mode) {
     glPolygonMode(GL_FRONT_AND_BACK, to_gl_polygon_mode(mode));
 }

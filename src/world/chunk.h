@@ -2,7 +2,7 @@
 #define CHUNK_H
 
 #include "block.h"
-#include "../math/vector3.h"
+#include "../math/vec3.h"
 #include "../graphics/graphics.h"
 #include "../graphics/tilemap.h"
 #include <pthread.h>
@@ -14,7 +14,7 @@
 
 #define CHUNK_VERTEX_SIZE 8
 
-typedef enum chunk_state {
+enum chunk_state {
     CHUNK_STATE_NEEDS_TERRAIN,
     // CHUNK_STATE_QUEUED_TERRAIN,
     CHUNK_STATE_GENERATING_TERRAIN,
@@ -23,24 +23,24 @@ typedef enum chunk_state {
     CHUNK_STATE_GENERATING_MESH,
     CHUNK_STATE_NEEDS_BUFFERS,
     CHUNK_STATE_READY,
-} chunk_state;
+};
 
-typedef struct chunk {
+struct chunk {
     atomic_bool visible;
-    _Atomic chunk_state state;
+    _Atomic enum chunk_state state;
     atomic_bool unloaded;
-    atomic_int in_use;
+    atomic_int in_use; // Rename to ref count?
     pthread_mutex_t lock;
-    vector3i position;
-    block_type blocks[CHUNK_SIZE_Z * CHUNK_SIZE_Y * CHUNK_SIZE_X];
-    tilemap *tilemap;
+    struct vec3i position;
+    enum block_type blocks[CHUNK_SIZE_Z * CHUNK_SIZE_Y * CHUNK_SIZE_X];
+    struct tilemap *tilemap;
     float *vertices;
     unsigned int *indices;
     int face_count;
-    bo vbo;
-    bo ibo;
-    vao vao;
-} chunk;
+    struct bo vbo;
+    struct bo ibo;
+    struct vao vao;
+};
 
 // What even are these
 // clang-format off
@@ -76,16 +76,20 @@ static const float FACE_NORMALS[6][3] = {
 
 static const int INDEX_ORDER[6] = {0, 1, 2, 0, 2, 3};
 
-void chunk_init(chunk *chunk, vector3i position, tilemap *tilemap);
-void chunk_destroy(chunk *chunk);
-// void chunk_update_mesh(chunk *chunk);
-void chunk_update_buffers(chunk *chunk);
-void chunk_draw(chunk *chunk);
+void chunk_init(struct chunk *chunk, struct vec3i position,
+                struct tilemap *tilemap);
+void chunk_destroy(struct chunk *chunk);
+// void chunk_update_mesh(struct chunk *chunk);
+void chunk_update_buffers(struct chunk *chunk);
+void chunk_draw(struct chunk *chunk);
 // Position be pointer?
-void chunk_generate_mesh(chunk *chunk);
-block_type chunk_get_block(chunk *chunk, vector3i position);
-block_type chunk_get_block_safe(chunk *chunk, vector3i position);
-void chunk_set_block(chunk *chunk, vector3i position, block_type type);
-void chunk_set_block_safe(chunk *chunk, vector3i position, block_type type);
+void chunk_generate_mesh(struct chunk *chunk);
+enum block_type chunk_get_block(struct chunk *chunk, struct vec3i position);
+enum block_type chunk_get_block_safe(struct chunk *chunk,
+                                     struct vec3i position);
+void chunk_set_block(struct chunk *chunk, struct vec3i position,
+                     enum block_type type);
+void chunk_set_block_safe(struct chunk *chunk, struct vec3i position,
+                          enum block_type type);
 
 #endif

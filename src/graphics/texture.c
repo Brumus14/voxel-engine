@@ -3,37 +3,38 @@
 #include "stb_image.h"
 #include "../util/gl.h"
 
-GLenum to_gl_filter(texture_filter filter) {
+GLenum to_gl_filter(enum texture_filter filter) {
     switch (filter) {
     case TEXTURE_FILTER_LINEAR:
         return GL_LINEAR;
     case TEXTURE_FILTER_NEAREST:
         return GL_NEAREST;
     default:
-        fprintf(stderr, "texture filter not recognised\n");
+        fprintf(stderr, "struct texture filter not recognised\n");
         return GL_NEAREST;
     }
 }
 
-GLenum to_gl_wrap(texture_wrap wrap) {
+GLenum to_gl_wrap(enum texture_wrap wrap) {
     switch (wrap) {
     case TEXTURE_WRAP_BORDER:
         return GL_CLAMP_TO_BORDER;
     case TEXTURE_WRAP_REPEAT:
         return GL_REPEAT;
     default:
-        fprintf(stderr, "texture wrap not recognised\n");
+        fprintf(stderr, "struct texture wrap not recognised\n");
         return GL_CLAMP_TO_BORDER;
     }
 }
 
-void texture_init(texture *texture, texture_filter filter, texture_wrap wrap) {
+void texture_init(struct texture *texture, enum texture_filter filter,
+                  enum texture_wrap wrap) {
     GL_CALL(glGenTextures(1, &texture->gl_id));
     texture->filter = filter;
     texture->wrap = wrap;
 }
 
-void texture_bind(texture *texture) {
+void texture_bind(struct texture *texture) {
     GL_CALL(glActiveTexture(GL_TEXTURE0));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, texture->gl_id));
 
@@ -46,7 +47,7 @@ void texture_bind(texture *texture) {
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap));
 }
 
-void texture_load(texture *texture, char *path) {
+void texture_load(struct texture *texture, char *path) {
     int channels;
 
     unsigned char *stb_texture =

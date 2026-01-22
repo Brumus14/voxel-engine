@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 
-void tilemap_init(tilemap *tilemap, char *texture_path,
-                  texture_filter texture_filter, int tile_width,
+void tilemap_init(struct tilemap *tilemap, char *texture_path,
+                  enum texture_filter texture_filter, int tile_width,
                   int tile_height, int margin, int spacing) {
     texture_init(&tilemap->texture, texture_filter, TEXTURE_WRAP_REPEAT);
     texture_load(&tilemap->texture, texture_path);
@@ -21,8 +21,9 @@ void tilemap_init(tilemap *tilemap, char *texture_path,
     tilemap->spacing = spacing;
 }
 
-rectangle tilemap_get_tile_rectangle(tilemap *tilemap, int tile_index) {
-    rectangle rectangle;
+struct rectangle tilemap_get_tile_rectangle(struct tilemap *tilemap,
+                                            int tile_index) {
+    struct rectangle rectangle;
 
     int tilemap_width = tilemap->margin * 2 +
                         tilemap->tile_width * tilemap->width +
@@ -46,6 +47,6 @@ rectangle tilemap_get_tile_rectangle(tilemap *tilemap, int tile_index) {
     return rectangle;
 }
 
-void tilemap_bind(tilemap *tilemap) {
+void tilemap_bind(struct tilemap *tilemap) {
     texture_bind(&tilemap->texture);
 }

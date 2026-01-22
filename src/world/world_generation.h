@@ -3,6 +3,7 @@
 
 #include "world.h"
 
-block_type *world_generation_chunk_terrain(vector3i chunk_position, float seed);
+enum block_type *world_generation_chunk_terrain(struct vec3i chunk_position,
+                                                float seed);
 
 #endif

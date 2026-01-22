@@ -2,27 +2,28 @@
 #define TEXTURE_H
 
 #include "glad/glad.h"
-#include "../math/vector2.h"
+#include "../math/vec2.h"
 
-typedef enum texture_filter {
+enum texture_filter {
     TEXTURE_FILTER_LINEAR,
     TEXTURE_FILTER_NEAREST,
-} texture_filter;
+};
 
-typedef enum texture_wrap {
+enum texture_wrap {
     TEXTURE_WRAP_BORDER,
     TEXTURE_WRAP_REPEAT,
-} texture_wrap;
+};
 
-typedef struct texture {
+struct texture {
     GLuint gl_id;
-    texture_filter filter;
-    texture_wrap wrap;
-    vector2i size;
-} texture;
+    enum texture_filter filter;
+    enum texture_wrap wrap;
+    struct vec2i size;
+};
 
-void texture_init(texture *texture, texture_filter filter, texture_wrap wrap);
-void texture_bind(texture *texture);
-void texture_load(texture *texture, char *path);
+void texture_init(struct texture *texture, enum texture_filter filter,
+                  enum texture_wrap wrap);
+void texture_bind(struct texture *texture);
+void texture_load(struct texture *texture, char *path);
 
 #endif

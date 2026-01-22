@@ -7,17 +7,18 @@
 #include <string.h>
 #include <unistd.h>
 
-// TODO: Check if the chunk has been unloaded if so then cancel
+// TODO: Check if the struct chunk has been unloaded if so then cancel
 // Doesn't free arg
 void *worker_generate_chunk_terrain(void *arg) {
-    worker_generate_chunk_terrain_args *args = arg;
-    chunk *chunk = args->chunk;
+    struct worker_generate_chunk_terrain_args *args = arg;
+    struct chunk *chunk = args->chunk;
     float seed = args->seed;
 
     atomic_fetch_add(&chunk->in_use, 1);
     atomic_store(&chunk->state, CHUNK_STATE_GENERATING_TERRAIN);
 
-    block_type *terrain = world_generation_chunk_terrain(chunk->position, seed);
+    enum block_type *terrain =
+        world_generation_chunk_terrain(chunk->position, seed);
 
     pthread_mutex_lock(&chunk->lock);
     memcpy(chunk->blocks, terrain, sizeof(chunk->blocks));
@@ -35,9 +36,9 @@ void *worker_generate_chunk_terrain(void *arg) {
 }
 
 void *worker_generate_chunk_mesh(void *arg) {
-    worker_generate_chunk_mesh_args *args = arg;
-    chunk *chunk = args->chunk;
-    world *world = args->world;
+    struct worker_generate_chunk_mesh_args *args = arg;
+    struct chunk *chunk = args->chunk;
+    struct world *world = args->world;
 
     atomic_fetch_add(&chunk->in_use, 1);
     atomic_store(&chunk->state, CHUNK_STATE_GENERATING_MESH);
@@ -54,14 +55,14 @@ void *worker_generate_chunk_mesh(void *arg) {
 }
 
 void *worker_generate_chunk(void *arg) {
-    worker_generate_chunk_args *args = arg;
-    chunk *chunk = args->chunk;
+    struct worker_generate_chunk_args *args = arg;
+    struct chunk *chunk = args->chunk;
     float seed = args->seed;
-    thread_pool *workers = args->workers;
+    struct thread_pool *workers = args->workers;
 
     atomic_fetch_add(&chunk->in_use, 1);
 
-    worker_generate_chunk_terrain_args terrain_args = {chunk, seed};
+    struct worker_generate_chunk_terrain_args terrain_args = {chunk, seed};
 
     worker_generate_chunk_terrain(&terrain_args);
     // atomic_store(&chunk->visible, true); // TODO: Move somewhere else

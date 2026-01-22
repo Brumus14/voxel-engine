@@ -5,15 +5,15 @@
 
 bool rand_seeded = false;
 
-vector3d rotation_to_direction(vector3d rotation) {
-    vector3d direction;
+struct vec3d rotation_to_direction(struct vec3d rotation) {
+    struct vec3d direction;
     rotation.y -= 90;
 
     direction.x = cos(glm_rad(rotation.y)) * cos(glm_rad(rotation.x));
     direction.y = sin(glm_rad(rotation.x));
     direction.z = sin(glm_rad(rotation.y)) * cos(glm_rad(rotation.x));
 
-    vector3d_normalise(&direction);
+    vec3d_normalise(&direction);
 
     return direction;
 }
@@ -23,15 +23,15 @@ float clamp(float value, float min, float max) {
     return min_value > max ? max : min_value;
 }
 
-void vector3f_print(vector3f v) {
+void vec3f_print(struct vec3f v) {
     printf("%f, %f, %f\n", v.x, v.y, v.z);
 }
 
-void vector3d_print(vector3d v) {
+void vec3d_print(struct vec3d v) {
     printf("%f, %f, %f\n", v.x, v.y, v.z);
 }
 
-void vector3i_print(vector3i v) {
+void vec3i_print(struct vec3i v) {
     printf("%d, %d, %d\n", v.x, v.y, v.z);
 }
 

@@ -2,7 +2,7 @@
 
 bool glfw_initialised = false;
 
-keycode glfw_to_keycode(int key) {
+enum keycode glfw_to_keycode(int key) {
     if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9) {
         return (key - GLFW_KEY_0) + KEYCODE_0;
     }
@@ -30,7 +30,7 @@ keycode glfw_to_keycode(int key) {
     return -1;
 }
 
-int keycode_to_glfw(keycode key) {
+int keycode_to_glfw(enum keycode key) {
     if (key >= KEYCODE_0 && key <= KEYCODE_9) {
         return (key - KEYCODE_0) + GLFW_KEY_0;
     }
@@ -58,7 +58,7 @@ int keycode_to_glfw(keycode key) {
     return -1;
 }
 
-mouse_button glfw_to_mouse_button(int button) {
+enum mouse_button glfw_to_mouse_button(int button) {
     switch (button) {
     case GLFW_MOUSE_BUTTON_LEFT:
         return MOUSE_BUTTON_LEFT;
@@ -71,7 +71,7 @@ mouse_button glfw_to_mouse_button(int button) {
     return -1;
 }
 
-int mouse_button_to_glfw(mouse_button button) {
+int mouse_button_to_glfw(enum mouse_button button) {
     switch (button) {
     case MOUSE_BUTTON_LEFT:
         return GLFW_MOUSE_BUTTON_LEFT;
@@ -88,7 +88,8 @@ int mouse_button_to_glfw(mouse_button button) {
 
 void glfw_framebuffer_size_callback(GLFWwindow *glfw_window, int width,
                                     int height) {
-    window *window_pointer = (window *)glfwGetWindowUserPointer(glfw_window);
+    struct window *window_pointer =
+        (struct window *)glfwGetWindowUserPointer(glfw_window);
 
     renderer_set_viewport(0, 0, width, height);
     glfwGetWindowSize(window_pointer->glfw_window, &window_pointer->width,
@@ -100,7 +101,8 @@ void glfw_framebuffer_size_callback(GLFWwindow *glfw_window, int width,
 
 void glfw_scroll_callback(GLFWwindow *glfw_window, double xoffset,
                           double yoffset) {
-    window *window_pointer = (window *)glfwGetWindowUserPointer(glfw_window);
+    struct window *window_pointer =
+        (struct window *)glfwGetWindowUserPointer(glfw_window);
 
     /*if (window_pointer->scroll_callback) {*/
     /*    window_pointer->scroll_callback(window_pointer, xoffset, yoffset);*/
@@ -117,8 +119,8 @@ void glfw_init() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
-void window_init(window *window, int width, int height, char *title,
-                 camera *camera) {
+void window_init(struct window *window, int width, int height, char *title,
+                 struct camera *camera) {
     window->width = width;
     window->height = height;
     window->title = title;
@@ -151,39 +153,39 @@ void window_init(window *window, int width, int height, char *title,
     /*glfwSetKeyCallback(window->glfw_window, glfw_key_callback);*/
     glfwSetScrollCallback(window->glfw_window, glfw_scroll_callback);
 
-    // TODO: Move to window setting
+    // TODO: Move to struct window setting
     glfwSwapInterval(0);
 }
 
-bool window_should_close(window *window) {
+bool window_should_close(struct window *window) {
     return glfwWindowShouldClose(window->glfw_window);
 }
 
-void window_swap_buffers(window *window) {
+void window_swap_buffers(struct window *window) {
     glfwSwapBuffers(window->glfw_window);
 }
 
-void window_destroy(window *window) {
+void window_destroy(struct window *window) {
     glfwDestroyWindow(window->glfw_window);
 }
 
-float window_get_aspect_ratio(window *window) {
+float window_get_aspect_ratio(struct window *window) {
     return (float)window->width / window->height;
 }
 
-void window_reset_cursor(window *window) {
+void window_reset_cursor(struct window *window) {
     glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
-void window_capture_cursor(window *window) {
+void window_capture_cursor(struct window *window) {
     glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
-double window_get_delta_time(window *window) {
+double window_get_delta_time(struct window *window) {
     return window->delta_time;
 }
 
-void window_update_delta_time(window *window) {
+void window_update_delta_time(struct window *window) {
     double current_time = glfwGetTime();
 
     window->delta_time = current_time - window->previous_time;
@@ -191,22 +193,22 @@ void window_update_delta_time(window *window) {
 }
 
 void window_set_framebuffer_size_callback(
-    window *window, window_framebuffer_size_callback function) {
+    struct window *window, window_framebuffer_size_callback function) {
     window->framebuffer_size_callback = function;
 }
 
-void window_set_cursor_pos_callback(window *window,
+void window_set_cursor_pos_callback(struct window *window,
                                     window_cursor_pos_callback function) {
     window->cursor_pos_callback = function;
 }
 
-void window_set_scroll_callback(window *window,
+void window_set_scroll_callback(struct window *window,
                                 window_scroll_callback function) {
     window->scroll_callback = function;
 }
 
 // Update mouse buttons
-void window_update_input(window *window) {
+void window_update_input(struct window *window) {
     keyboard_update_state(&window->keyboard);
     mouse_update_state(&window->mouse);
 
@@ -238,7 +240,7 @@ void window_update_input(window *window) {
 
     glfwGetCursorPos(window->glfw_window, &mouse_x, &mouse_y);
 
-    mouse_set_position(&window->mouse, (vector2d){mouse_x, mouse_y});
+    mouse_set_position(&window->mouse, (struct vec2d){mouse_x, mouse_y});
 
     glfwPollEvents(); // should this be at the start?
 }

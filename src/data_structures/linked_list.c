@@ -3,20 +3,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-void list_node_init(list_node *node, void *data) {
+void list_node_init(struct list_node *node, void *data) {
     node->data = data;
     node->previous = NULL;
     node->next = NULL;
 }
 
-void linked_list_init(linked_list *list, unsigned long data_size) {
+void linked_list_init(struct linked_list *list, unsigned long data_size) {
     list->head = NULL;
     list->tail = NULL;
     list->data_size = data_size;
 }
 
-void linked_list_insert_beginning(linked_list *list, void *data) {
-    list_node *new_node = malloc(sizeof(list_node));
+void linked_list_insert_beginning(struct linked_list *list, void *data) {
+    struct list_node *new_node = malloc(sizeof(struct list_node));
     list_node_init(new_node, data);
 
     new_node->next = list->head;
@@ -30,8 +30,8 @@ void linked_list_insert_beginning(linked_list *list, void *data) {
     list->head = new_node;
 }
 
-void linked_list_insert_end(linked_list *list, void *data) {
-    list_node *new_node = malloc(sizeof(list_node));
+void linked_list_insert_end(struct linked_list *list, void *data) {
+    struct list_node *new_node = malloc(sizeof(struct list_node));
     list_node_init(new_node, data);
 
     new_node->previous = list->tail;
@@ -45,7 +45,7 @@ void linked_list_insert_end(linked_list *list, void *data) {
     list->tail = new_node;
 }
 
-void linked_list_insert(linked_list *list, void *data, int index) {
+void linked_list_insert(struct linked_list *list, void *data, int index) {
     int list_length = linked_list_length(list);
 
     if (index > list_length) {
@@ -58,10 +58,10 @@ void linked_list_insert(linked_list *list, void *data, int index) {
     } else if (index == list_length) {
         linked_list_insert_end(list, data);
     } else {
-        list_node *new_node = malloc(sizeof(list_node));
+        struct list_node *new_node = malloc(sizeof(struct list_node));
         list_node_init(new_node, data);
 
-        list_node *node = list->head;
+        struct list_node *node = list->head;
 
         for (int i = 0; i < index; i++) {
             node = node->next;
@@ -79,12 +79,12 @@ void linked_list_insert(linked_list *list, void *data, int index) {
     }
 }
 
-void *linked_list_remove_beginning(linked_list *list) {
+void *linked_list_remove_beginning(struct linked_list *list) {
     if (!list->head) {
         return NULL;
     }
 
-    list_node *removed_node = list->head;
+    struct list_node *removed_node = list->head;
     list->head = list->head->next;
 
     if (list->head) {
@@ -100,12 +100,12 @@ void *linked_list_remove_beginning(linked_list *list) {
     return removed_data;
 }
 
-void *linked_list_remove_end(linked_list *list) {
+void *linked_list_remove_end(struct linked_list *list) {
     if (!list->head) {
         return NULL;
     }
 
-    list_node *removed_node = list->tail;
+    struct list_node *removed_node = list->tail;
     list->tail = list->tail->previous;
 
     if (list->tail) {
@@ -121,7 +121,7 @@ void *linked_list_remove_end(linked_list *list) {
     return removed_data;
 }
 
-void *linked_list_remove(linked_list *list, int index) {
+void *linked_list_remove(struct linked_list *list, int index) {
     int list_length = linked_list_length(list);
 
     if (index >= list_length) {
@@ -133,7 +133,7 @@ void *linked_list_remove(linked_list *list, int index) {
     } else if (index == list_length - 1) {
         return linked_list_remove_end(list);
     } else {
-        list_node *removed_node = list->head;
+        struct list_node *removed_node = list->head;
 
         for (int i = 0; i < index; i++) {
             removed_node = removed_node->next;
@@ -150,11 +150,11 @@ void *linked_list_remove(linked_list *list, int index) {
     }
 }
 
-void linked_list_destroy(linked_list *list) {
-    list_node *node = list->head;
+void linked_list_destroy(struct linked_list *list) {
+    struct list_node *node = list->head;
 
     while (node) {
-        list_node *next_node = node->next;
+        struct list_node *next_node = node->next;
         free(node);
         node = next_node;
     }
@@ -163,9 +163,9 @@ void linked_list_destroy(linked_list *list) {
     list->tail = NULL;
 }
 
-unsigned int linked_list_length(linked_list *list) {
+unsigned int linked_list_length(struct linked_list *list) {
     int length = 0;
-    list_node *current_node = list->head;
+    struct list_node *current_node = list->head;
 
     while (current_node) {
         length++;
@@ -175,12 +175,12 @@ unsigned int linked_list_length(linked_list *list) {
     return length;
 }
 
-void *linked_list_get(linked_list *list, int index) {
+void *linked_list_get(struct linked_list *list, int index) {
     if (index >= linked_list_length(list)) {
         return NULL;
     }
 
-    list_node *current_node = list->head;
+    struct list_node *current_node = list->head;
 
     for (int i = 0; i < index; i++) {
         current_node = current_node->next;
@@ -189,12 +189,12 @@ void *linked_list_get(linked_list *list, int index) {
     return current_node->data;
 }
 
-bool linked_list_is_empty(linked_list *list) {
+bool linked_list_is_empty(struct linked_list *list) {
     return !list->head;
 }
 
-unsigned int linked_list_find(linked_list *list, void *data) {
-    list_node *current_node = list->head;
+unsigned int linked_list_find(struct linked_list *list, void *data) {
+    struct list_node *current_node = list->head;
     int index = 0;
 
     while (current_node != list->tail &&

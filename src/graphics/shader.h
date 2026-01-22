@@ -3,18 +3,15 @@
 
 #include "glad/glad.h"
 
-typedef struct shader {
+struct shader {
     GLuint gl_id;
-} shader;
+};
 
-typedef enum shader_type {
-    SHADER_TYPE_VERTEX,
-    SHADER_TYPE_FRAGMENT
-} shader_type;
+enum shader_type { SHADER_TYPE_VERTEX, SHADER_TYPE_FRAGMENT };
 
-void shader_init(shader *shader, shader_type type);
-void shader_source(shader *shader, char *source);
-void shader_compile(shader *shader);
-void shader_delete(shader *shader);
+void shader_init(struct shader *shader, enum shader_type type);
+void shader_source(struct shader *shader, char *source);
+void shader_compile(struct shader *shader);
+void shader_delete(struct shader *shader);
 
 #endif

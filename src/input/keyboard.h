@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-typedef enum keycode {
+enum keycode {
     KEYCODE_0,
     KEYCODE_1,
     KEYCODE_2,
@@ -58,26 +58,27 @@ typedef enum keycode {
     KEYCODE_RIGHT_ALT,
     KEYCODE_RIGHT_SUPER,
     KEYCODE_LAST
-} keycode;
+};
 
-typedef enum key_state {
+enum key_state {
     KEY_STATE_UP,
     KEY_STATE_DOWN,
-} key_state;
+};
 
-typedef struct keyboard {
-    key_state keys[KEYCODE_LAST];
+struct keyboard {
+    enum key_state keys[KEYCODE_LAST];
     bool keys_just_up[KEYCODE_LAST];
     bool keys_just_down[KEYCODE_LAST];
-} keyboard;
+};
 
-void keyboard_init(keyboard *keyboard);
-void keyboard_update_state(keyboard *keyboard);
-void keyboard_set_key(keyboard *keyboard, keycode key, key_state state);
-key_state keyboard_get_key(keyboard *keyboard, keycode key);
-bool keyboard_key_up(keyboard *keyboard, keycode key);
-bool keyboard_key_just_up(keyboard *keyboard, keycode key);
-bool keyboard_key_down(keyboard *keyboard, keycode key);
-bool keyboard_key_just_down(keyboard *keyboard, keycode key);
+void keyboard_init(struct keyboard *keyboard);
+void keyboard_update_state(struct keyboard *keyboard);
+void keyboard_set_key(struct keyboard *keyboard, enum keycode key,
+                      enum key_state state);
+enum key_state keyboard_get_key(struct keyboard *keyboard, enum keycode key);
+bool keyboard_key_up(struct keyboard *keyboard, enum keycode key);
+bool keyboard_key_just_up(struct keyboard *keyboard, enum keycode key);
+bool keyboard_key_down(struct keyboard *keyboard, enum keycode key);
+bool keyboard_key_just_down(struct keyboard *keyboard, enum keycode key);
 
 #endif

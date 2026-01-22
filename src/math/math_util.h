@@ -1,15 +1,15 @@
 #ifndef MATH_UTIL_H
 #define MATH_UTIL_H
 
-#include "vector3/vector3f.h"
-#include "vector3/vector3d.h"
-#include "vector3/vector3i.h"
+#include "vec3/vec3f.h"
+#include "vec3/vec3d.h"
+#include "vec3/vec3i.h"
 
-vector3d rotation_to_direction(vector3d rotation);
+struct vec3d rotation_to_direction(struct vec3d rotation);
 float clamp(float value, float min, float max);
-void vector3f_print(vector3f v);
-void vector3d_print(vector3d v);
-void vector3i_print(vector3i v);
+void vec3f_print(struct vec3f v);
+void vec3d_print(struct vec3d v);
+void vec3i_print(struct vec3i v);
 int sign(double value);
 int mod(int a, int b);
 double random_range(double min, double max);

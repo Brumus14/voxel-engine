@@ -9,31 +9,34 @@
 #include "../math/rectangle.h"
 #include "gui_element.h"
 
-typedef struct gui_image {
+struct gui_image {
     bool visible;
-    vector2d position;
-    vector2d scale;
-    texture texture;
-    rectangle texture_rectangle;
-    gui_element_origin origin;
-    gui_element_layer layer;
-    vao vao;
-    bo vbo;
-    bo ibo;
-} gui_image;
+    struct vec2d position;
+    struct vec2d scale;
+    struct texture texture;
+    struct rectangle texture_rectangle;
+    enum gui_element_origin origin;
+    enum gui_element_layer layer;
+    struct vao vao;
+    struct bo vbo;
+    struct bo ibo;
+};
 
-void gui_image_init(gui_image *gui_image, char *image_path, vector2d position,
-                    vector2d scale, gui_element_origin origin,
-                    gui_element_layer layer);
-void gui_image_draw(gui_image *gui_image);
-void gui_image_destroy(gui_image *gui_image);
+void gui_image_init(struct gui_image *gui_image, char *image_path,
+                    struct vec2d position, struct vec2d scale,
+                    enum gui_element_origin origin,
+                    enum gui_element_layer layer);
+void gui_image_draw(struct gui_image *gui_image);
+void gui_image_destroy(struct gui_image *gui_image);
 
-void gui_image_set_visible(gui_image *gui_image, bool visible);
-void gui_image_set_position(gui_image *gui_image, vector2d position);
-void gui_image_set_scale(gui_image *gui_image, vector2d scale);
-void gui_image_set_texture_rectangle(gui_image *gui_image,
-                                     rectangle texture_rectangle);
-void gui_image_set_origin(gui_image *gui_image, gui_element_origin origin);
-void gui_image_set_layer(gui_image *gui_image, gui_element_layer layer);
+void gui_image_set_visible(struct gui_image *gui_image, bool visible);
+void gui_image_set_position(struct gui_image *gui_image, struct vec2d position);
+void gui_image_set_scale(struct gui_image *gui_image, struct vec2d scale);
+void gui_image_set_texture_rectangle(struct gui_image *gui_image,
+                                     struct rectangle texture_rectangle);
+void gui_image_set_origin(struct gui_image *gui_image,
+                          enum gui_element_origin origin);
+void gui_image_set_layer(struct gui_image *gui_image,
+                         enum gui_element_layer layer);
 
 #endif

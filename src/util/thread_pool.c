@@ -8,8 +8,8 @@
 #include <unistd.h>
 
 void *thread_pool_thread_main(void *arg) {
-    thread_pool *pool = (thread_pool *)arg;
-    queue *tasks = &pool->tasks;
+    struct thread_pool *pool = (struct thread_pool *)arg;
+    struct queue *tasks = &pool->tasks;
     pthread_mutex_t *tasks_lock = &pool->tasks_lock;
     pthread_cond_t *task_available = &pool->task_available;
 
@@ -22,7 +22,7 @@ void *thread_pool_thread_main(void *arg) {
             printf("waiting\n");
         }
 
-        thread_pool_task *task = queue_dequeue(tasks);
+        struct thread_pool_task *task = queue_dequeue(tasks);
         pthread_mutex_unlock(tasks_lock);
 
         // if (task) {
@@ -36,10 +36,10 @@ void *thread_pool_thread_main(void *arg) {
     return NULL;
 }
 
-void thread_pool_init(thread_pool *pool, unsigned int count) {
+void thread_pool_init(struct thread_pool *pool, unsigned int count) {
     pool->thread_count = count;
     pool->threads = malloc(sizeof(pthread_t) * count);
-    queue_init(&pool->tasks, sizeof(thread_pool_task));
+    queue_init(&pool->tasks, sizeof(struct thread_pool_task));
     pthread_mutex_init(&pool->tasks_lock, NULL);
     pthread_cond_init(&pool->task_available, NULL);
 
@@ -49,7 +49,7 @@ void thread_pool_init(thread_pool *pool, unsigned int count) {
 }
 
 // Dont think this is correct
-void thread_pool_destroy(thread_pool *pool) {
+void thread_pool_destroy(struct thread_pool *pool) {
     queue_destroy(&pool->tasks);
     pthread_mutex_destroy(&pool->tasks_lock);
     pthread_cond_destroy(&pool->task_available);
@@ -61,11 +61,11 @@ void thread_pool_destroy(thread_pool *pool) {
     free(pool->threads);
 }
 
-void thread_pool_schedule(thread_pool *pool, thread_pool_task_function function,
-                          void *argument) {
+void thread_pool_schedule(struct thread_pool *pool,
+                          thread_pool_task_function function, void *argument) {
     pthread_mutex_lock(&pool->tasks_lock);
 
-    thread_pool_task *task = malloc(sizeof(thread_pool_task));
+    struct thread_pool_task *task = malloc(sizeof(struct thread_pool_task));
     task->function = function;
     task->argument = argument;
 

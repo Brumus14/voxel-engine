@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "math/vec3/vec3_convert.h"
 #include "world/block.h"
 #include "game/player.h"
 #include "world/world.h"
@@ -16,9 +17,9 @@
 // make arguments const
 
 int main() {
-    window window;
-    camera camera;
-    gui gui;
+    struct window window;
+    struct camera camera;
+    struct gui gui;
 
     window_init(&window, 400, 400, "minecraft!", &camera);
 
@@ -26,19 +27,19 @@ int main() {
     renderer_set_clear_colour(0.53, 0.81, 0.92, 1.0);
     // renderer_set_polygon_mode(POLYGON_MODE_LINE);
 
-    camera_init(&camera, VECTOR3D_ZERO, VECTOR3D_ZERO, 90.0,
+    camera_init(&camera, VEC3D_ZERO, VEC3D_ZERO, 90.0,
                 window_get_aspect_ratio(&window), 0.1, 1000.0);
 
     gui_init(&gui, &window);
 
-    gui_image crosshair;
-    gui_image_init(&crosshair, "res/textures/crosshair.png", VECTOR2D_ZERO,
-                   (vector2d){1, 1}, GUI_ELEMENT_ORIGIN_CENTER_CENTER,
+    struct gui_image crosshair;
+    gui_image_init(&crosshair, "res/textures/crosshair.png", VEC2D_ZERO,
+                   (struct vec2d){1, 1}, GUI_ELEMENT_ORIGIN_CENTER_CENTER,
                    GUI_ELEMENT_LAYER_0);
 
     gui_add_image(&gui, &crosshair);
 
-    hotbar hotbar;
+    struct hotbar hotbar;
     hotbar_init(&hotbar, &gui);
 
     hotbar_set_item(&hotbar, 0, ITEM_TYPE_GRASS_BLOCK);
@@ -48,16 +49,17 @@ int main() {
     hotbar_set_item(&hotbar, 4, ITEM_TYPE_LOG_BLOCK);
     hotbar_set_item(&hotbar, 5, ITEM_TYPE_DIAMOND_BLOCK);
 
-    world world;
+    struct world world;
     world_init(&world);
 
-    world_load_chunk(&world, (vector3i){0, 0, 0});
-    world_load_chunk(&world, (vector3i){0, -1, 0});
+    world_load_chunk(&world, (struct vec3i){0, 0, 0});
+    // world_load_chunk(&world, (struct vec3i){-1, 0, 0});
+    // world_load_chunk(&world, (struct vec3i){-1, -1, 0});
 
     // 21474836.0
     // 2147483.0
-    player player;
-    player_init(&player, (vector3d){8.0, 4.0, 8.0}, VECTOR3D_ZERO, 0.05,
+    struct player player;
+    player_init(&player, (struct vec3d){8.0, 4.0, 8.0}, VEC3D_ZERO, 0.05,
                 &camera);
 
     while (!window_should_close(&window)) {
@@ -75,9 +77,10 @@ int main() {
         }
 
         gui_image_set_position(
-            &crosshair, (vector2d){(double)window.width / 2,
-                                   (double)window.height /
-                                       2}); // only run when window size changed
+            &crosshair,
+            (struct vec2d){(double)window.width / 2,
+                           (double)window.height /
+                               2}); // only run when struct window size changed
         hotbar_update_gui(&hotbar);
 
         // printf("%f\n", 1.0 / window_get_delta_time(&window));
@@ -94,9 +97,10 @@ int main() {
             window_capture_cursor(&window);
             player_destroy_block(&player, &world);
         }
+        world_get_block(&world, vec3i_from_vec3d_floor(player.position));
 
         if (mouse_button_just_down(&window.mouse, MOUSE_BUTTON_RIGHT)) {
-            block_type current_block =
+            enum block_type current_block =
                 item_type_to_block_type(hotbar_get_current_item(&hotbar));
 
             if (current_block != -1) {
@@ -159,7 +163,7 @@ int main() {
 
         camera_set_rotation(&camera, player.rotation);
         camera_set_position(
-            &camera, vector3d_add(player.position, (vector3d){0, 0.6, 0}));
+            &camera, vec3d_add(player.position, (struct vec3d){0, 0.6, 0}));
 
         if (player.sprinting) {
             if (camera.fov < 90 * 1.1) {

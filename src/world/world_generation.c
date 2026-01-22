@@ -7,29 +7,29 @@ static inline int block_index(int x, int y, int z) {
     return z * CHUNK_SIZE_Y * CHUNK_SIZE_X + y * CHUNK_SIZE_X + x;
 }
 
-block_type *world_generation_chunk_terrain(vector3i chunk_position,
-                                           float seed) {
-    block_type *blocks =
-        malloc(sizeof(block_type) * CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z);
+enum block_type *world_generation_chunk_terrain(struct vec3i chunk_position,
+                                                float seed) {
+    enum block_type *blocks = malloc(sizeof(enum block_type) * CHUNK_SIZE_X *
+                                     CHUNK_SIZE_Y * CHUNK_SIZE_Z);
 
     fnl_state height_noise = fnlCreateState();
     height_noise.noise_type = FNL_NOISE_PERLIN;
     height_noise.seed = seed;
 
-    vector3i chunk_block_position;
-    vector3i_init(&chunk_block_position, chunk_position.x * CHUNK_SIZE_X,
-                  chunk_position.y * CHUNK_SIZE_Y,
-                  chunk_position.z * CHUNK_SIZE_Z);
+    struct vec3i chunk_block_position;
+    vec3i_init(&chunk_block_position, chunk_position.x * CHUNK_SIZE_X,
+               chunk_position.y * CHUNK_SIZE_Y,
+               chunk_position.z * CHUNK_SIZE_Z);
 
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
             for (int x = 0; x < CHUNK_SIZE_X; x++) {
-                vector3i position;
-                vector3i_init(&position, chunk_block_position.x + x,
-                              chunk_block_position.y + y,
-                              chunk_block_position.z + z);
+                struct vec3i position;
+                vec3i_init(&position, chunk_block_position.x + x,
+                           chunk_block_position.y + y,
+                           chunk_block_position.z + z);
 
-                block_type type = BLOCK_TYPE_EMPTY;
+                enum block_type type = BLOCK_TYPE_EMPTY;
 
                 float height_value =
                     fnlGetNoise2D(&height_noise, position.x * 2,
@@ -66,9 +66,9 @@ block_type *world_generation_chunk_terrain(vector3i chunk_position,
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
             for (int x = 0; x < CHUNK_SIZE_X; x++) {
-                vector3i position = {chunk_block_position.x + x,
-                                     chunk_block_position.y + y,
-                                     chunk_block_position.z + z};
+                struct vec3i position = {chunk_block_position.x + x,
+                                         chunk_block_position.y + y,
+                                         chunk_block_position.z + z};
 
                 if (fnlGetNoise3D(&cave_noise, position.x * 2, position.y * 2,
                                   position.z * 2) > 0.3) {

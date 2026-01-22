@@ -1,14 +1,14 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
-typedef struct rectangle {
+struct rectangle {
     float x;
     float y;
     float width;
     float height;
-} rectangle;
+};
 
-void rectangle_init(rectangle *rectangle, float x, float y, float width,
+void rectangle_init(struct rectangle *rectangle, float x, float y, float width,
                     float height);
 
 #endif

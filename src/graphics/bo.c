@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "../util/gl.h"
 
-GLenum to_gl_usage(bo_usage usage) {
+GLenum to_gl_usage(enum bo_usage usage) {
     switch (usage) {
     case BO_USAGE_STREAM_DRAW:
         return GL_STREAM_DRAW;
@@ -29,7 +29,7 @@ GLenum to_gl_usage(bo_usage usage) {
     }
 }
 
-GLenum to_gl_type(bo_type type) {
+GLenum to_gl_type(enum bo_type type) {
     switch (type) {
     case BO_TYPE_VERTEX:
         return GL_ARRAY_BUFFER;
@@ -41,7 +41,7 @@ GLenum to_gl_type(bo_type type) {
     }
 }
 
-void bo_init(bo *bo, bo_type type) {
+void bo_init(struct bo *bo, enum bo_type type) {
     if (!bo) {
         fprintf(stderr, "bo_init: buffer object is null\n");
         return;
@@ -51,7 +51,7 @@ void bo_init(bo *bo, bo_type type) {
     GL_CALL(glGenBuffers(1, &bo->gl_id));
 }
 
-void bo_bind(bo *bo) {
+void bo_bind(struct bo *bo) {
     if (!bo) {
         fprintf(stderr, "bo_bind: buffer object is null\n");
         return;
@@ -61,7 +61,7 @@ void bo_bind(bo *bo) {
     GL_CALL(glBindBuffer(gl_type, bo->gl_id));
 }
 
-void bo_upload(bo *bo, int data_size, void *data, bo_usage usage) {
+void bo_upload(struct bo *bo, int data_size, void *data, enum bo_usage usage) {
     if (!bo) {
         fprintf(stderr, "bo_upload: buffer object is null\n");
         return;
@@ -73,11 +73,11 @@ void bo_upload(bo *bo, int data_size, void *data, bo_usage usage) {
     GL_CALL(glBufferData(gl_type, data_size, data, to_gl_usage(usage)));
 }
 
-void bo_destroy(bo *bo) {
+void bo_destroy(struct bo *bo) {
     GL_CALL(glDeleteBuffers(1, &bo->gl_id));
 }
 
-int bo_get_size(bo *bo) {
+int bo_get_size(struct bo *bo) {
     int size;
 
     GL_CALL(glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size));
