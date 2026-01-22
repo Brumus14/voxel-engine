@@ -59,11 +59,3 @@ double random_range(double min, double max) {
 
     return ((double)rand() / RAND_MAX) * (max - min) + min;
 }
-
-double min(double a, double b) {
-    return (a < b) ? a : b;
-}
-
-double max(double a, double b) {
-    return (a > b) ? a : b;
-}

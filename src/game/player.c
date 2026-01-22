@@ -196,7 +196,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 2; // move to a variable
+    int render_distance = 10; // move to a variable
     struct vec3i player_chunk;
     player_chunk.x = floor(player->position.x / CHUNK_SIZE_X);
     player_chunk.y = floor(player->position.y / CHUNK_SIZE_Y);
@@ -218,9 +218,9 @@ void player_manage_chunks(struct player *player, struct world *world) {
     for (int z = -render_distance; z <= render_distance; z++) {
         for (int y = -render_distance; y <= render_distance; y++) {
             for (int x = -render_distance; x <= render_distance; x++) {
-                // world_load_chunk(world, (struct vec3i){player_chunk.x + x,
-                //                                    player_chunk.y + y,
-                //                                    player_chunk.z + z});
+                world_load_chunk(world, (struct vec3i){player_chunk.x + x,
+                                                       player_chunk.y + y,
+                                                       player_chunk.z + z});
             }
         }
     }

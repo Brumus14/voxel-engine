@@ -436,7 +436,7 @@ void chunk_generate_mesh(struct chunk *chunk) {
 inline enum block_type chunk_get_block(struct chunk *chunk,
                                        struct vec3i position) {
     return chunk->blocks[position.x + position.y * CHUNK_SIZE_X +
-                         position.z * (CHUNK_SIZE_X * CHUNK_SIZE_Y)];
+                         position.z * CHUNK_SIZE_X * CHUNK_SIZE_Y];
 }
 
 inline enum block_type chunk_get_block_safe(struct chunk *chunk,

@@ -10,8 +10,9 @@
 
 struct window;
 
-typedef void (*window_framebuffer_size_callback)(struct window *, int, int);
-typedef void (*window_cursor_pos_callback)(struct window *, double, double);
+typedef void (*window_resize_callback)(struct window *, int, int);
+typedef void (*window_cursor_position_callback)(struct window *, double,
+                                                double);
 typedef void (*window_scroll_callback)(struct window *, double, double);
 
 struct window {
@@ -24,8 +25,8 @@ struct window {
     struct mouse mouse;
     double delta_time;
     double previous_time;
-    window_framebuffer_size_callback framebuffer_size_callback;
-    window_cursor_pos_callback cursor_pos_callback;
+    window_resize_callback framebuffer_size_callback;
+    window_cursor_position_callback cursor_pos_callback;
     window_scroll_callback scroll_callback;
 };
 
@@ -38,10 +39,10 @@ void window_destroy(struct window *window);
 float window_get_aspect_ratio(struct window *window);
 void window_reset_cursor(struct window *window);
 void window_capture_cursor(struct window *window);
-void window_set_framebuffer_size_callback(
-    struct window *window, window_framebuffer_size_callback function);
+void window_set_framebuffer_size_callback(struct window *window,
+                                          window_resize_callback function);
 void window_set_cursor_pos_callback(struct window *window,
-                                    window_cursor_pos_callback function);
+                                    window_cursor_position_callback function);
 void window_set_scroll_callback(struct window *window,
                                 window_scroll_callback function);
 double window_get_delta_time(struct window *window);

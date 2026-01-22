@@ -150,11 +150,9 @@ void world_draw(struct world *world) {
 
 enum block_type world_get_block(struct world *world, struct vec3i position) {
     // rename to chunks loaded
-    struct vec3i chunk_position = {position.x / CHUNK_SIZE_X,
-                                   position.y / CHUNK_SIZE_Y,
-                                   position.z / CHUNK_SIZE_Z};
-    vec3i_print(position);
-    vec3i_print(chunk_position);
+    struct vec3i chunk_position = {floor_div(position.x, CHUNK_SIZE_X),
+                                   floor_div(position.y, CHUNK_SIZE_Y),
+                                   floor_div(position.z, CHUNK_SIZE_Z)};
 
     struct chunk *chunk = hash_map_get(&world->chunks, &chunk_position);
 
@@ -196,9 +194,9 @@ enum block_type world_get_block_safe(struct world *world,
 
 void world_set_block(struct world *world, enum block_type type,
                      struct vec3i position) {
-    struct vec3i chunk_position = {position.x / CHUNK_SIZE_X,
-                                   position.y / CHUNK_SIZE_Y,
-                                   position.z / CHUNK_SIZE_Z};
+    struct vec3i chunk_position = {floor_div(position.x, CHUNK_SIZE_X),
+                                   floor_div(position.y, CHUNK_SIZE_Y),
+                                   floor_div(position.z, CHUNK_SIZE_Z)};
 
     struct chunk *chunk = hash_map_get(&world->chunks, &chunk_position);
 

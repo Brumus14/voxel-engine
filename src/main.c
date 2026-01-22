@@ -52,9 +52,7 @@ int main() {
     struct world world;
     world_init(&world);
 
-    world_load_chunk(&world, (struct vec3i){0, 0, 0});
-    // world_load_chunk(&world, (struct vec3i){-1, 0, 0});
-    // world_load_chunk(&world, (struct vec3i){-1, -1, 0});
+    // world_load_chunk(&world, (struct vec3i){0, 0, 0});
 
     // 21474836.0
     // 2147483.0

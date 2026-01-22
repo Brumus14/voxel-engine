@@ -192,13 +192,13 @@ void window_update_delta_time(struct window *window) {
     window->previous_time = current_time;
 }
 
-void window_set_framebuffer_size_callback(
-    struct window *window, window_framebuffer_size_callback function) {
+void window_set_framebuffer_size_callback(struct window *window,
+                                          window_resize_callback function) {
     window->framebuffer_size_callback = function;
 }
 
 void window_set_cursor_pos_callback(struct window *window,
-                                    window_cursor_pos_callback function) {
+                                    window_cursor_position_callback function) {
     window->cursor_pos_callback = function;
 }
 
