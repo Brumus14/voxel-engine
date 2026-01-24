@@ -20,10 +20,11 @@ struct world {
 void world_init(struct world *world);
 void world_load_chunk(struct world *world, struct vec3i position);
 void world_unload_chunk(struct world *world, struct vec3i position);
+void world_update(struct world *world);
 void world_draw(struct world *world);
 enum block_type world_get_block(struct world *world, struct vec3i position);
 enum block_type world_get_block_safe(struct world *world,
-                                     struct vec3i position);
+                                     struct vec3i position); // Is this needed
 void world_set_block(struct world *world, enum block_type type,
                      struct vec3i position);
 void world_set_block_safe(struct world *world, enum block_type type,

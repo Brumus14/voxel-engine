@@ -1,4 +1,5 @@
-Don't mesh blocks on chunk borders so wait for bordering chunks to generate terrain
+When modifying chunk, remesh neighbors if necessary
+    Don't mesh blocks on chunk borders so wait for bordering chunks to generate terrain
 Check for any race conditions / multithreading bugs (potentially to do with chunk iteration)
 Improve meshing like greedy meshing
 Sometimes get invalid frees probably due to multithreading issues

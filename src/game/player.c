@@ -185,6 +185,7 @@ void player_manage_chunks_chunk(void *key, void *value, void *context) {
         chunk->position.z < player_chunk->z - *render_distance ||
         chunk->position.z > player_chunk->z + *render_distance) {
         (*unloaded_chunk_count)++;
+        // Realloc'ing is probably pretty inefficient
         *unloaded_chunks = realloc(*unloaded_chunks, *unloaded_chunk_count *
                                                          sizeof(struct vec3i));
         (*unloaded_chunks)[*unloaded_chunk_count - 1] = chunk->position;
@@ -196,7 +197,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 10; // move to a variable
+    int render_distance = 8; // move to a variable
     struct vec3i player_chunk;
     player_chunk.x = floor(player->position.x / CHUNK_SIZE_X);
     player_chunk.y = floor(player->position.y / CHUNK_SIZE_Y);

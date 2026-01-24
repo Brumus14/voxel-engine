@@ -79,13 +79,13 @@
 // }
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                struct tilemap *tilemap) {
+                struct tilemap *tilemap, bool visible) {
     chunk->position = position;
     atomic_init(&chunk->state, CHUNK_STATE_NEEDS_TERRAIN);
     atomic_init(&chunk->unloaded, false);
     atomic_init(&chunk->in_use, 0);
     pthread_mutex_init(&chunk->lock, NULL);
-    atomic_init(&chunk->visible, true); // default false?
+    atomic_init(&chunk->visible, visible); // default false?
     chunk->tilemap = tilemap;
 
     chunk->vertices = NULL;
@@ -255,9 +255,9 @@ void chunk_update_buffers(struct chunk *chunk) {
 
 // bind texture
 void chunk_draw(struct chunk *chunk) {
-    // if (atomic_load(&chunk->visible) == false) { TODO: Reimplement
-    //     return;
-    // }
+    if (atomic_load(&chunk->visible) == false) {
+        return;
+    }
 
     vao_bind(&chunk->vao);
     bo_bind(&chunk->ibo);
@@ -271,45 +271,81 @@ void chunk_draw(struct chunk *chunk) {
 }
 
 // Maybe return all faces to call less times
-bool is_block_face_active(struct chunk *chunk, struct vec3i position,
-                          enum block_face face) {
+// Rename to is visible?
+// Possibly reduce repetition here
+bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
+                          struct vec3i position, enum block_face face) {
+    // Normalise the directional order with like neighbor offset etc
     switch (face) {
     case BLOCK_FACE_FRONT:
-        return (position.z < CHUNK_SIZE_Z - 1 &&
-                chunk_get_block(chunk, (struct vec3i){position.x, position.y,
-                                                      position.z + 1}) ==
-                    BLOCK_TYPE_EMPTY);
+        if (position.z < CHUNK_SIZE_Z - 1) {
+            return chunk_get_block(chunk, (struct vec3i){position.x, position.y,
+                                                         position.z + 1}) ==
+                   BLOCK_TYPE_EMPTY;
+        } else if (position.z == CHUNK_SIZE_Z - 1 && neighbors[5]) {
+            return chunk_get_block(neighbors[5],
+                                   (struct vec3i){position.x, position.y, 0}) ==
+                   BLOCK_TYPE_EMPTY;
+        }
     case BLOCK_FACE_TOP:
-        return (position.y < CHUNK_SIZE_Y - 1 &&
-                chunk_get_block(
-                    chunk, (struct vec3i){position.x, position.y + 1,
-                                          position.z}) == BLOCK_TYPE_EMPTY);
+        if (position.y < CHUNK_SIZE_Y - 1) {
+            return chunk_get_block(
+                       chunk, (struct vec3i){position.x, position.y + 1,
+                                             position.z}) == BLOCK_TYPE_EMPTY;
+        } else if (position.y == CHUNK_SIZE_Y - 1 && neighbors[3]) {
+            return chunk_get_block(neighbors[3],
+                                   (struct vec3i){position.x, 0, position.z}) ==
+                   BLOCK_TYPE_EMPTY;
+        }
     case BLOCK_FACE_RIGHT:
-        return (position.x < CHUNK_SIZE_X - 1 &&
-                chunk_get_block(
-                    chunk, (struct vec3i){position.x + 1, position.y,
-                                          position.z}) == BLOCK_TYPE_EMPTY);
+        if (position.x < CHUNK_SIZE_X - 1) {
+            return chunk_get_block(
+                       chunk, (struct vec3i){position.x + 1, position.y,
+                                             position.z}) == BLOCK_TYPE_EMPTY;
+        } else if (position.x == CHUNK_SIZE_X - 1 && neighbors[1]) {
+            return chunk_get_block(neighbors[1],
+                                   (struct vec3i){0, position.y, position.z}) ==
+                   BLOCK_TYPE_EMPTY;
+        }
     case BLOCK_FACE_BOTTOM:
-        return (position.y > 0 &&
-                chunk_get_block(
-                    chunk, (struct vec3i){position.x, position.y - 1,
-                                          position.z}) == BLOCK_TYPE_EMPTY);
+        if (position.y > 0) {
+            return chunk_get_block(
+                       chunk, (struct vec3i){position.x, position.y - 1,
+                                             position.z}) == BLOCK_TYPE_EMPTY;
+        } else if (position.y == 0 && neighbors[2]) {
+            return chunk_get_block(neighbors[2],
+                                   (struct vec3i){position.x, CHUNK_SIZE_Y - 1,
+                                                  position.z}) ==
+                   BLOCK_TYPE_EMPTY;
+        }
     case BLOCK_FACE_LEFT:
-        return (position.x > 0 &&
-                chunk_get_block(
-                    chunk, (struct vec3i){position.x - 1, position.y,
-                                          position.z}) == BLOCK_TYPE_EMPTY);
+        if (position.x > 0) {
+            return chunk_get_block(
+                       chunk, (struct vec3i){position.x - 1, position.y,
+                                             position.z}) == BLOCK_TYPE_EMPTY;
+        } else if (position.x == 0 && neighbors[0]) {
+            return chunk_get_block(neighbors[0],
+                                   (struct vec3i){CHUNK_SIZE_X - 1, position.y,
+                                                  position.z}) ==
+                   BLOCK_TYPE_EMPTY;
+        }
     case BLOCK_FACE_BACK:
-        return (position.z > 0 &&
-                chunk_get_block(chunk, (struct vec3i){position.x, position.y,
-                                                      position.z - 1}) ==
-                    BLOCK_TYPE_EMPTY);
+        if (position.z > 0) {
+            return chunk_get_block(chunk, (struct vec3i){position.x, position.y,
+                                                         position.z - 1}) ==
+                   BLOCK_TYPE_EMPTY;
+        } else if (position.z == 0 && neighbors[4]) {
+            return chunk_get_block(neighbors[4],
+                                   (struct vec3i){position.x, position.y,
+                                                  CHUNK_SIZE_Z - 1}) ==
+                   BLOCK_TYPE_EMPTY;
+        }
     }
 
     return false;
 }
 
-void chunk_generate_mesh(struct chunk *chunk) {
+void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
     pthread_mutex_lock(&chunk->lock);
 
     chunk->face_count = 0;
@@ -321,8 +357,8 @@ void chunk_generate_mesh(struct chunk *chunk) {
                 if (chunk_get_block(chunk, (struct vec3i){x, y, z}) !=
                     BLOCK_TYPE_EMPTY) {
                     for (int i = 0; i < 6; i++) {
-                        if (is_block_face_active(chunk, (struct vec3i){x, y, z},
-                                                 i)) {
+                        if (is_block_face_active(chunk, neighbors,
+                                                 (struct vec3i){x, y, z}, i)) {
                             chunk->face_count++;
                         }
                     }
@@ -348,8 +384,8 @@ void chunk_generate_mesh(struct chunk *chunk) {
                 }
 
                 for (int f = 0; f < 6; f++) {
-                    if (!is_block_face_active(chunk, (struct vec3i){x, y, z},
-                                              f)) {
+                    if (!is_block_face_active(chunk, neighbors,
+                                              (struct vec3i){x, y, z}, f)) {
                         continue;
                     }
 

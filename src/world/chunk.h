@@ -29,7 +29,7 @@ struct chunk {
     atomic_bool visible;
     _Atomic enum chunk_state state;
     atomic_bool unloaded;
-    atomic_int in_use; // Rename to ref count?
+    atomic_int in_use; // Rename to ref count? Is this needed?
     pthread_mutex_t lock;
     struct vec3i position;
     enum block_type blocks[CHUNK_SIZE_Z * CHUNK_SIZE_Y * CHUNK_SIZE_X];
@@ -65,25 +65,36 @@ static const unsigned int FACE_INDICES[6][4] = {
 };
 
 static const float FACE_NORMALS[6][3] = {
-    {0,  0,  1 },
-    {0,  1,  0 },
-    {1,  0,  0 },
-    {0,  -1, 0 },
-    {-1, 0,  0 },
-    {0,  0,  -1},
+    { 0,  0,  1},
+    { 0,  1,  0},
+    { 1,  0,  0},
+    { 0, -1,  0},
+    {-1,  0,  0},
+    { 0,  0, -1},
+};
+
+static const int INDEX_ORDER[6] = {0, 1, 2,
+                                   0, 2, 3};
+
+// Left, Right, Bottom, Top, Back, Front
+static const struct vec3i NEIGHBOR_OFFSETS[6] = {
+    {-1,  0,  0},
+    { 1,  0,  0},
+    { 0, -1,  0},
+    { 0,  1,  0},
+    { 0,  0, -1},
+    { 0,  0,  1},
 };
 // clang-format on
 
-static const int INDEX_ORDER[6] = {0, 1, 2, 0, 2, 3};
-
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                struct tilemap *tilemap);
+                struct tilemap *tilemap, bool visible);
 void chunk_destroy(struct chunk *chunk);
 // void chunk_update_mesh(struct chunk *chunk);
 void chunk_update_buffers(struct chunk *chunk);
 void chunk_draw(struct chunk *chunk);
 // Position be pointer?
-void chunk_generate_mesh(struct chunk *chunk);
+void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors);
 enum block_type chunk_get_block(struct chunk *chunk, struct vec3i position);
 enum block_type chunk_get_block_safe(struct chunk *chunk,
                                      struct vec3i position);

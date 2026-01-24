@@ -21,7 +21,7 @@ int main() {
     struct camera camera;
     struct gui gui;
 
-    window_init(&window, 400, 400, "minecraft!", &camera);
+    window_init(&window, 400, 400, "voxels!", &camera);
 
     renderer_init();
     renderer_set_clear_colour(0.53, 0.81, 0.92, 1.0);
@@ -181,6 +181,7 @@ int main() {
 
         camera_prepare_draw(&camera);
 
+        world_update(&world);
         world_draw(&world); // SLOW
 
         renderer_clear_depth_buffer();

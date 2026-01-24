@@ -39,11 +39,12 @@ void *worker_generate_chunk_mesh(void *arg) {
     struct worker_generate_chunk_mesh_args *args = arg;
     struct chunk *chunk = args->chunk;
     struct world *world = args->world;
+    struct chunk **neighbors = args->neighbors;
 
     atomic_fetch_add(&chunk->in_use, 1);
     atomic_store(&chunk->state, CHUNK_STATE_GENERATING_MESH);
 
-    chunk_generate_mesh(chunk);
+    chunk_generate_mesh(chunk, neighbors);
 
     printf("generated mesh for %d,%d,%d\n", chunk->position.x,
            chunk->position.y, chunk->position.z);
@@ -54,6 +55,8 @@ void *worker_generate_chunk_mesh(void *arg) {
     return NULL;
 }
 
+// Rename to init chunk?
+// Remove and just queue terrain, then queue mesh when terrain done?
 void *worker_generate_chunk(void *arg) {
     struct worker_generate_chunk_args *args = arg;
     struct chunk *chunk = args->chunk;
@@ -65,11 +68,9 @@ void *worker_generate_chunk(void *arg) {
     struct worker_generate_chunk_terrain_args terrain_args = {chunk, seed};
 
     worker_generate_chunk_terrain(&terrain_args);
-    // atomic_store(&chunk->visible, true); // TODO: Move somewhere else
 
     atomic_fetch_sub(&chunk->in_use, 1);
 
-    // thread_pool_schedule(workers, worker_generate_chunk_mesh, chunk);
     free(arg);
 
     return NULL;

@@ -15,7 +15,7 @@ struct worker_generate_chunk_terrain_args {
 struct worker_generate_chunk_mesh_args {
     struct chunk *chunk;
     struct world *world;
-    // hash_map *chunks;
+    struct chunk *neighbors[6];
 };
 
 struct worker_generate_chunk_args {
