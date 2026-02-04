@@ -30,12 +30,12 @@ struct window {
     window_scroll_callback scroll_callback;
 };
 
-void glfw_init();
 void window_init(struct window *window, int width, int height, char *title,
                  struct camera *camera);
+void window_destroy(struct window *window);
+void window_shutdown();
 bool window_should_close(struct window *window);
 void window_swap_buffers(struct window *window);
-void window_destroy(struct window *window);
 float window_get_aspect_ratio(struct window *window);
 void window_reset_cursor(struct window *window);
 void window_capture_cursor(struct window *window);

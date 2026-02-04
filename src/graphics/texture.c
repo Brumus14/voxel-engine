@@ -34,6 +34,10 @@ void texture_init(struct texture *texture, enum texture_filter filter,
     texture->wrap = wrap;
 }
 
+void texture_destroy(struct texture *texture) {
+    GL_CALL(glDeleteTextures(1, &texture->gl_id));
+}
+
 void texture_bind(struct texture *texture) {
     GL_CALL(glActiveTexture(GL_TEXTURE0));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, texture->gl_id));

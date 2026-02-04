@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "../util/gl.h"
 #include "../util/io.h"
+#include "shader.h"
 
 void shader_program_init(struct shader_program *program,
                          struct shader *vertex_shader,
@@ -13,9 +14,10 @@ void shader_program_init(struct shader_program *program,
     GL_CALL(glAttachShader(program->gl_id, fragment_shader->gl_id));
 
     shader_program_link(program);
+}
 
-    GL_CALL(glDeleteShader(vertex_shader->gl_id));
-    GL_CALL(glDeleteShader(fragment_shader->gl_id));
+void shader_program_destroy(struct shader_program *program) {
+    GL_CALL(glDeleteProgram(program->gl_id));
 }
 
 void shader_program_from_files(struct shader_program *program,
@@ -47,13 +49,15 @@ void shader_program_from_files(struct shader_program *program,
 
     shader_program_init(program, &vertex_shader, &fragment_shader);
 
-    free(vertex_source); // ADDEDD
+    shader_destroy(&vertex_shader);
+    shader_destroy(&fragment_shader);
+
+    free(vertex_source);
     free(fragment_source);
 }
 
 void shader_program_bind_attribute(struct shader_program *program, int index,
                                    char *name) {
-
     GL_CALL(glBindAttribLocation(program->gl_id, index, name));
 }
 
@@ -63,8 +67,4 @@ void shader_program_link(struct shader_program *program) {
 
 void shader_program_use(struct shader_program *program) {
     GL_CALL(glUseProgram(program->gl_id));
-}
-
-void shader_program_destroy(struct shader_program *program) {
-    GL_CALL(glDeleteProgram(program->gl_id));
 }

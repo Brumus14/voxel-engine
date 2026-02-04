@@ -3,15 +3,17 @@
 
 #include "glad/glad.h"
 
-enum draw_mode { DRAW_MODE_TRIANGLES };
+enum draw_mode {
+    DRAW_MODE_TRIANGLES = 0,
+};
 
 enum polygon_mode {
-    POLYGON_MODE_FILL,
+    POLYGON_MODE_FILL = 0,
     POLYGON_MODE_LINE,
 };
 
 enum index_type {
-    INDEX_TYPE_UNSIGNED_INT,
+    INDEX_TYPE_UNSIGNED_INT = 0,
     INDEX_TYPE_UNSIGNED_SHORT,
     INDEX_TYPE_UNSIGNED_BYTE,
 };

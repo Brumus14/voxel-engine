@@ -1,4 +1,35 @@
-When modifying chunk, remesh neighbors if necessary
+chunk states were originally all good to then generate mesh, then when it came to actually being generated one went back to needing terrain
+chunks are queued to unload and unload while a chunk has just been queued to mesh, so the neighbor will go backwards kind of
+handle border chunks better
+chunk was queued to mesh so all chunks at least have terrain, then when meshing a neighbor didnt have terrain, it wasn't unloaded
+removing unloading resolves issue
+
+
+5 -10 -12 - seg fault accessing block
+5 -9 -2 - chunk generating mesh for
+
+neighbors:
+4, -9, -2 - gen mesh
+5, -10, -12 - need terr
+5, -10, -2 - need mesh
+5, -8, -2 - ready
+5, -9, -3 - gen mesh
+5, -9, -1 - gen mesh
+
+6, -9, -2 - was being unloaded at 625743, it never got unloaded
+5, -10, -12 - added at 635523
+
+
+Check all init functions have a correct destroy
+Add get functions to renderer
+Regenerate border chunks when loading new chunks, or have border of terrain generated hidden chunks to correctly generate border visible chunks
+Move keyboard bindings from main
+Chunk get block - accesses block data which may be being modified
+Bulk allocate initial chunk memory?
+Unloaded chunks not freed well
+Maybe optimise thread pool queue for SPMC
+Some chunk borders dont mesh when they should - Could be due to chunks on edge of render distance since neighbors dont exist
+Workers can cancel tasks if chunk is being unloaded
     Don't mesh blocks on chunk borders so wait for bordering chunks to generate terrain
 Check for any race conditions / multithreading bugs (potentially to do with chunk iteration)
 Improve meshing like greedy meshing
@@ -19,7 +50,3 @@ Chunk occlusion culling
 I think rendering is like blocked especially noticable when initially generating lots of chunks
 Break out of worker tasks early by checking unloaded flag
 Pass by reference more
-
-
-
-Write shader that makes screen black and white

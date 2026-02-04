@@ -2,7 +2,7 @@
 #define GUI_ELEMENT_H
 
 enum gui_element_type {
-    GUI_ELEMENT_TYPE_IMAGE,
+    GUI_ELEMENT_TYPE_IMAGE = 0,
 };
 
 struct gui_element {
@@ -12,7 +12,7 @@ struct gui_element {
 
 // Origin in format x_y
 enum gui_element_origin {
-    GUI_ELEMENT_ORIGIN_LEFT_TOP,
+    GUI_ELEMENT_ORIGIN_LEFT_TOP = 0,
     GUI_ELEMENT_ORIGIN_CENTER_TOP,
     GUI_ELEMENT_ORIGIN_RIGHT_TOP,
     GUI_ELEMENT_ORIGIN_LEFT_CENTER,
@@ -26,7 +26,7 @@ enum gui_element_origin {
 // 0 is back 9 is front
 // number for layer instead of enum
 enum gui_element_layer {
-    GUI_ELEMENT_LAYER_0,
+    GUI_ELEMENT_LAYER_0 = 0,
     GUI_ELEMENT_LAYER_1,
     GUI_ELEMENT_LAYER_2,
     GUI_ELEMENT_LAYER_3,
@@ -38,5 +38,7 @@ enum gui_element_layer {
     GUI_ELEMENT_LAYER_9,
     GUI_ELEMENT_LAYER_LAST
 };
+
+void gui_element_destroy(struct gui_element *element);
 
 #endif

@@ -67,6 +67,7 @@ void renderer_draw_elements(enum draw_mode mode, int count,
                            0));
 }
 
+// Get polygon mode?
 void renderer_set_polygon_mode(enum polygon_mode mode) {
     glPolygonMode(GL_FRONT_AND_BACK, to_gl_polygon_mode(mode));
 }

@@ -120,6 +120,14 @@ void gui_image_init(struct gui_image *gui_image, char *image_path,
     gui_image_update(gui_image);
 }
 
+void gui_image_destroy(struct gui_image *gui_image) {
+    vao_destroy(&gui_image->vao);
+    bo_destroy(&gui_image->vbo);
+    bo_destroy(&gui_image->ibo);
+
+    texture_destroy(&gui_image->texture);
+}
+
 void gui_image_draw(struct gui_image *gui_image) {
     if (!gui_image->visible) {
         return;
@@ -137,12 +145,6 @@ void gui_image_draw(struct gui_image *gui_image) {
 void gui_image_set_visible(struct gui_image *gui_image, bool visible) {
     gui_image->visible = visible;
     gui_image_update(gui_image);
-}
-
-void gui_image_destroy(struct gui_image *gui_image) {
-    vao_destroy(&gui_image->vao);
-    bo_destroy(&gui_image->vbo);
-    bo_destroy(&gui_image->ibo);
 }
 
 void gui_image_set_scale(struct gui_image *gui_image, struct vec2d scale) {

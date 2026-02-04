@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "../util/logging.h"
 
 void *thread_pool_thread_main(void *arg) {
     struct thread_pool *pool = (struct thread_pool *)arg;
@@ -19,7 +20,10 @@ void *thread_pool_thread_main(void *arg) {
 
         while (queue_is_empty(tasks)) {
             pthread_cond_wait(task_available, tasks_lock);
-            printf("waiting\n");
+
+            if (WORLD_LOGGING) {
+                printf("waiting\n");
+            }
         }
 
         struct thread_pool_task *task = queue_dequeue(tasks);
@@ -38,27 +42,27 @@ void *thread_pool_thread_main(void *arg) {
 
 void thread_pool_init(struct thread_pool *pool, unsigned int count) {
     pool->thread_count = count;
-    pool->threads = malloc(sizeof(pthread_t) * count);
     queue_init(&pool->tasks, sizeof(struct thread_pool_task));
     pthread_mutex_init(&pool->tasks_lock, NULL);
     pthread_cond_init(&pool->task_available, NULL);
+
+    pool->threads = malloc(sizeof(pthread_t) * count);
 
     for (int i = 0; i < count; i++) {
         pthread_create(&pool->threads[i], NULL, thread_pool_thread_main, pool);
     }
 }
 
-// Dont think this is correct
 void thread_pool_destroy(struct thread_pool *pool) {
-    queue_destroy(&pool->tasks);
-    pthread_mutex_destroy(&pool->tasks_lock);
-    pthread_cond_destroy(&pool->task_available);
-
     for (int i = 0; i < pool->thread_count; i++) {
         pthread_cancel(pool->threads[i]);
     }
 
     free(pool->threads);
+
+    pthread_cond_destroy(&pool->task_available);
+    pthread_mutex_destroy(&pool->tasks_lock);
+    queue_destroy(&pool->tasks);
 }
 
 void thread_pool_schedule(struct thread_pool *pool,

@@ -51,6 +51,10 @@ void bo_init(struct bo *bo, enum bo_type type) {
     GL_CALL(glGenBuffers(1, &bo->gl_id));
 }
 
+void bo_destroy(struct bo *bo) {
+    GL_CALL(glDeleteBuffers(1, &bo->gl_id));
+}
+
 void bo_bind(struct bo *bo) {
     if (!bo) {
         fprintf(stderr, "bo_bind: buffer object is null\n");
@@ -71,10 +75,6 @@ void bo_upload(struct bo *bo, int data_size, void *data, enum bo_usage usage) {
 
     GLenum gl_type = to_gl_type(bo->type);
     GL_CALL(glBufferData(gl_type, data_size, data, to_gl_usage(usage)));
-}
-
-void bo_destroy(struct bo *bo) {
-    GL_CALL(glDeleteBuffers(1, &bo->gl_id));
 }
 
 int bo_get_size(struct bo *bo) {

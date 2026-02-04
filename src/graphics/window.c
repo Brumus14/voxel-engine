@@ -128,7 +128,7 @@ void window_init(struct window *window, int width, int height, char *title,
     // work on callbacks
     window->scroll_callback = NULL;
 
-    window_update_delta_time(window); // ADDEDD
+    window_update_delta_time(window);
 
     keyboard_init(&window->keyboard);
     mouse_init(&window->mouse);
@@ -157,16 +157,20 @@ void window_init(struct window *window, int width, int height, char *title,
     glfwSwapInterval(0);
 }
 
+void window_destroy(struct window *window) {
+    glfwDestroyWindow(window->glfw_window);
+}
+
+void window_shutdown() {
+    glfwTerminate();
+}
+
 bool window_should_close(struct window *window) {
     return glfwWindowShouldClose(window->glfw_window);
 }
 
 void window_swap_buffers(struct window *window) {
     glfwSwapBuffers(window->glfw_window);
-}
-
-void window_destroy(struct window *window) {
-    glfwDestroyWindow(window->glfw_window);
 }
 
 float window_get_aspect_ratio(struct window *window) {

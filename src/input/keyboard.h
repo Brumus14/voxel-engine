@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 enum keycode {
-    KEYCODE_0,
+    KEYCODE_0 = 0,
     KEYCODE_1,
     KEYCODE_2,
     KEYCODE_3,
@@ -61,7 +61,7 @@ enum keycode {
 };
 
 enum key_state {
-    KEY_STATE_UP,
+    KEY_STATE_UP = 0,
     KEY_STATE_DOWN,
 };
 

@@ -1,8 +1,12 @@
+#include "data_structures/dynamic_array.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "graphics/camera.h"
+#include "graphics/window.h"
+#include "input/keyboard.h"
 #include "math/vec3/vec3_convert.h"
 #include "world/block.h"
 #include "game/player.h"
@@ -19,17 +23,16 @@
 int main() {
     struct window window;
     struct camera camera;
-    struct gui gui;
 
     window_init(&window, 400, 400, "voxels!", &camera);
 
     renderer_init();
     renderer_set_clear_colour(0.53, 0.81, 0.92, 1.0);
-    // renderer_set_polygon_mode(POLYGON_MODE_LINE);
 
     camera_init(&camera, VEC3D_ZERO, VEC3D_ZERO, 90.0,
                 window_get_aspect_ratio(&window), 0.1, 1000.0);
 
+    struct gui gui;
     gui_init(&gui, &window);
 
     struct gui_image crosshair;
@@ -51,8 +54,6 @@ int main() {
 
     struct world world;
     world_init(&world);
-
-    // world_load_chunk(&world, (struct vec3i){0, 0, 0});
 
     // 21474836.0
     // 2147483.0
@@ -83,6 +84,13 @@ int main() {
 
         // printf("%f\n", 1.0 / window_get_delta_time(&window));
 
+        static bool wireframe = false;
+        if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {
+            wireframe = !wireframe;
+            renderer_set_polygon_mode(wireframe ? POLYGON_MODE_LINE
+                                                : POLYGON_MODE_FILL);
+        }
+
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_LEFT_CONTROL)) {
             player.sprinting = !player.sprinting;
         }
@@ -111,6 +119,7 @@ int main() {
         }
 
         // move to hotbar file?
+        // move to input file?
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_1)) {
             // make into function so doesnt update hotbar gui every frame
             hotbar.current_slot = 0;
@@ -190,9 +199,13 @@ int main() {
         window_swap_buffers(&window);
     }
 
+    gui_destroy(&gui);
+    world_destroy(&world);
+    hotbar_destroy(&hotbar);
+    camera_destroy(&camera);
     window_destroy(&window);
 
-    glfwTerminate(); // move this somewhere
+    window_shutdown();
 
     return 0;
 }

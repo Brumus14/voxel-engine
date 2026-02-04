@@ -5,12 +5,12 @@
 #include "../math/vec2.h"
 
 enum texture_filter {
-    TEXTURE_FILTER_LINEAR,
+    TEXTURE_FILTER_LINEAR = 0,
     TEXTURE_FILTER_NEAREST,
 };
 
 enum texture_wrap {
-    TEXTURE_WRAP_BORDER,
+    TEXTURE_WRAP_BORDER = 0,
     TEXTURE_WRAP_REPEAT,
 };
 
@@ -23,6 +23,7 @@ struct texture {
 
 void texture_init(struct texture *texture, enum texture_filter filter,
                   enum texture_wrap wrap);
+void texture_destroy(struct texture *texture);
 void texture_bind(struct texture *texture);
 void texture_load(struct texture *texture, char *path);
 

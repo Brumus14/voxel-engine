@@ -7,6 +7,10 @@ void vao_init(struct vao *vao) {
     GL_CALL(glGenVertexArrays(1, &vao->gl_id));
 }
 
+void vao_destroy(struct vao *vao) {
+    GL_CALL(glDeleteVertexArrays(1, &vao->gl_id));
+}
+
 void vao_bind(struct vao *vao) {
     GL_CALL(glBindVertexArray(vao->gl_id));
 }
@@ -32,8 +36,4 @@ void vao_attrib(struct vao *vao, int index, int size, enum array_type type,
     GL_CALL(glVertexAttribPointer(index, size, gl_type, normalised, stride,
                                   pointer));
     GL_CALL(glEnableVertexAttribArray(index));
-}
-
-void vao_destroy(struct vao *vao) {
-    GL_CALL(glDeleteVertexArrays(1, &vao->gl_id));
 }

@@ -1,4 +1,5 @@
 #include "tilemap.h"
+#include "texture.h"
 
 #include <stdio.h>
 
@@ -19,6 +20,10 @@ void tilemap_init(struct tilemap *tilemap, char *texture_path,
     tilemap->tile_height = tile_height;
     tilemap->margin = margin;
     tilemap->spacing = spacing;
+}
+
+void tilemap_destroy(struct tilemap *tilemap) {
+    texture_destroy(&tilemap->texture);
 }
 
 struct rectangle tilemap_get_tile_rectangle(struct tilemap *tilemap,

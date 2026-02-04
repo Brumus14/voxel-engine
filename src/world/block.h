@@ -2,7 +2,7 @@
 #define BLOCK_H
 
 enum block_type {
-    BLOCK_TYPE_EMPTY,
+    BLOCK_TYPE_EMPTY = 0,
     BLOCK_TYPE_GRASS,
     BLOCK_TYPE_DIRT,
     BLOCK_TYPE_STONE,
@@ -13,7 +13,7 @@ enum block_type {
 };
 
 enum block_face {
-    BLOCK_FACE_FRONT,
+    BLOCK_FACE_FRONT = 0,
     BLOCK_FACE_TOP,
     BLOCK_FACE_RIGHT,
     BLOCK_FACE_BOTTOM,

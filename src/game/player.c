@@ -8,6 +8,7 @@
 #include "../util/gl.h"
 #include "../data_structures/linked_list.h"
 #include "../data_structures/hash_map.h"
+#include "../world/chunk.h"
 
 void player_init(struct player *player, struct vec3d position,
                  struct vec3d rotation, double sensitivity,
@@ -197,7 +198,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 8; // move to a variable
+    int render_distance = 3; // move to a variable
     struct vec3i player_chunk;
     player_chunk.x = floor(player->position.x / CHUNK_SIZE_X);
     player_chunk.y = floor(player->position.y / CHUNK_SIZE_Y);
@@ -343,7 +344,6 @@ void player_set_target_block(struct player *player, struct world *world,
     struct vec3d target_block;
 
     if (player_get_target_block(player, world, &target_block, NULL)) {
-        vec3d_print(target_block);
         struct vec3i p = vec3i_from_vec3d_floor(target_block);
         world_set_block(world, type, vec3i_from_vec3d_floor(target_block));
     }

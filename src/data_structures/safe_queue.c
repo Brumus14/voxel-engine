@@ -8,8 +8,8 @@ void safe_queue_init(struct safe_queue *queue, unsigned long data_size) {
 }
 
 void safe_queue_destroy(struct safe_queue *queue) {
-    queue_destroy(&queue->queue);
     pthread_mutex_destroy(&queue->lock);
+    queue_destroy(&queue->queue);
 }
 
 void safe_queue_enqueue(struct safe_queue *queue, void *data) {

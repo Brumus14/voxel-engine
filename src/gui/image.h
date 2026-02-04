@@ -7,7 +7,7 @@
 #include "../graphics/vao.h"
 #include "../graphics/bo.h"
 #include "../math/rectangle.h"
-#include "gui_element.h"
+#include "element.h"
 
 struct gui_image {
     bool visible;
@@ -26,8 +26,8 @@ void gui_image_init(struct gui_image *gui_image, char *image_path,
                     struct vec2d position, struct vec2d scale,
                     enum gui_element_origin origin,
                     enum gui_element_layer layer);
-void gui_image_draw(struct gui_image *gui_image);
 void gui_image_destroy(struct gui_image *gui_image);
+void gui_image_draw(struct gui_image *gui_image);
 
 void gui_image_set_visible(struct gui_image *gui_image, bool visible);
 void gui_image_set_position(struct gui_image *gui_image, struct vec2d position);

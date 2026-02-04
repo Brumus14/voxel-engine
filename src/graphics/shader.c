@@ -23,6 +23,15 @@ void shader_init(struct shader *shader, enum shader_type type) {
     shader->gl_id = GL_CALL_R(glCreateShader(gl_type), GLuint);
 }
 
+void shader_destroy(struct shader *shader) {
+    if (!shader) {
+        fprintf(stderr, "shader_delete: struct shader is null\n");
+        return;
+    }
+
+    GL_CALL(glDeleteShader(shader->gl_id));
+}
+
 void shader_source(struct shader *shader, char *source) {
     if (!shader) {
         fprintf(stderr, "shader_source: struct shader is null\n");
@@ -54,13 +63,4 @@ void shader_compile(struct shader *shader) {
 
         fprintf(stderr, "shader_compile: %s\n", error);
     }
-}
-
-void shader_delete(struct shader *shader) {
-    if (!shader) {
-        fprintf(stderr, "shader_delete: struct shader is null\n");
-        return;
-    }
-
-    GL_CALL(glDeleteShader(shader->gl_id));
 }

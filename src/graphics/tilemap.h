@@ -17,6 +17,7 @@ struct tilemap {
 void tilemap_init(struct tilemap *tilemap, char *texture_path,
                   enum texture_filter texture_filter, int tile_width,
                   int tile_height, int margin, int spacing);
+void tilemap_destroy(struct tilemap *tilemap);
 struct rectangle tilemap_get_tile_rectangle(struct tilemap *tilemap,
                                             int tile_index);
 void tilemap_bind(struct tilemap *tilemap);

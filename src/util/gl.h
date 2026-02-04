@@ -4,15 +4,15 @@
 #include <stdio.h>
 #include "glad/glad.h"
 
-#define GL_CALL(func)                                                          \
-    func;                                                                      \
+#define GL_CALL(func) \
+    func;             \
     check_gl_error(#func);
 
-#define GL_CALL_R(func, type)                                                  \
-    ({                                                                         \
-        type result = func;                                                    \
-        check_gl_error(#func);                                                 \
-        result;                                                                \
+#define GL_CALL_R(func, type)  \
+    ({                         \
+        type result = func;    \
+        check_gl_error(#func); \
+        result;                \
     })
 
 static inline void check_gl_error(char *prefix) {

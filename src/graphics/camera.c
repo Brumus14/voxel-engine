@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 #include "../util/gl.h"
 #include "../math/math_util.h"
+#include "shader_program.h"
 
 // use frustum culling
 void generate_perspective_matrix(struct camera *camera) {
@@ -58,6 +59,10 @@ void camera_init(struct camera *camera, struct vec3d position,
                               "res/shaders/voxel.frag");
     shader_program_bind_attribute(&camera->shader_program, 0, "position");
     shader_program_link(&camera->shader_program);
+}
+
+void camera_destroy(struct camera *camera) {
+    shader_program_destroy(&camera->shader_program);
 }
 
 void camera_set_position(struct camera *camera, struct vec3d position) {

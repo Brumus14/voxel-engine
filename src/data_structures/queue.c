@@ -1,15 +1,15 @@
 #include "queue.h"
 
+#include "linked_list.h"
 #include <stddef.h>
+#include <stdlib.h>
 
 void queue_init(struct queue *queue, unsigned long data_size) {
     linked_list_init(&queue->list, data_size);
 }
 
 void queue_destroy(struct queue *queue) {
-    while (!queue_is_empty(queue)) {
-        queue_dequeue(queue);
-    }
+    linked_list_destroy(&queue->list);
 }
 
 void queue_enqueue(struct queue *queue, void *data) {

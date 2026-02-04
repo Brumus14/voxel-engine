@@ -24,15 +24,15 @@ float clamp(float value, float min, float max) {
 }
 
 void vec3f_print(struct vec3f v) {
-    printf("%f, %f, %f\n", v.x, v.y, v.z);
+    printf("%f, %f, %f", v.x, v.y, v.z);
 }
 
 void vec3d_print(struct vec3d v) {
-    printf("%f, %f, %f\n", v.x, v.y, v.z);
+    printf("%f, %f, %f", v.x, v.y, v.z);
 }
 
 void vec3i_print(struct vec3i v) {
-    printf("%d, %d, %d\n", v.x, v.y, v.z);
+    printf("%d, %d, %d", v.x, v.y, v.z);
 }
 
 int sign(double value) {

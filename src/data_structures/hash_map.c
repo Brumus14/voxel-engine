@@ -37,7 +37,7 @@ void hash_map_destroy(struct hash_map *map) {
 
         while (current_node) {
             struct hash_map_node *next_node = current_node->next;
-            hash_map_node_destroy(current_node);
+            free(hash_map_node_destroy(current_node));
             free(current_node);
             current_node = next_node;
         }
@@ -46,13 +46,13 @@ void hash_map_destroy(struct hash_map *map) {
     free(map->buckets);
 }
 
+static int c = 0;
+
 void *hash_map_put(struct hash_map *map, void *key, void *value) {
+    // printf("%d\n", ++c);
     // Should avoid copying them maybe implement arena allocator
     void *owned_key = malloc(map->key_size);
     memcpy(owned_key, key, map->key_size);
-
-    // void *owned_value = malloc(map->value_size);
-    // memcpy(owned_value, value, map->value_size);
 
     int index = map->hash_function(owned_key) % map->bucket_count;
     struct hash_map_node *bucket_head = map->buckets[index];
@@ -107,6 +107,7 @@ void *hash_map_get(struct hash_map *map, void *key) {
 }
 
 void *hash_map_remove(struct hash_map *map, void *key) {
+    // printf("%d\n", --c);
     int index = map->hash_function(key) % map->bucket_count;
 
     struct hash_map_node *current_node = map->buckets[index];

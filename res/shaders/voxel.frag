@@ -24,4 +24,11 @@ void main()
     vec3 result = diffuse * texture_colour.rgb; // Disco mode: * sin(camera_position)
 
     frag_color_out = vec4(result, 1.0);
+
+    // Black and white
+    // float value = length(result);
+    // if (mod(int(gl_FragCoord.x / 3), 2) == 0 && mod(int(gl_FragCoord.y / 3), 2) == 0) {
+    //     value *= 0.7;
+    // }
+    // frag_color_out = vec4(vec3(value), 1.0);
 }

@@ -1,0 +1,16 @@
+{
+   gtk_pango_fontconfig
+   Memcheck:Leak
+   match-leak-kinds: reachable,possible
+   fun:malloc
+   fun:Fc*
+   fun:pango*
+   fun:gtk*
+}
+
+{
+   libdecor_wayland
+   Memcheck:Leak
+   fun:*
+   obj:/usr/lib/libdecor*
+}

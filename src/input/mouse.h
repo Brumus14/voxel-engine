@@ -4,14 +4,14 @@
 #include "../math/vec2.h"
 
 enum mouse_button {
-    MOUSE_BUTTON_LEFT,
+    MOUSE_BUTTON_LEFT = 0,
     MOUSE_BUTTON_MIDDLE,
     MOUSE_BUTTON_RIGHT,
     MOUSE_BUTTON_LAST
 };
 
 enum button_state {
-    BUTTON_STATE_UP,
+    BUTTON_STATE_UP = 0,
     BUTTON_STATE_DOWN,
 };
 

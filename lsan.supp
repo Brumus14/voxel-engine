@@ -1,0 +1,10 @@
+# GTK / Wayland / decorations
+leak:libgtk-3.so
+leak:libdecor
+leak:libpango
+leak:libfontconfig
+leak:libwayland
+leak:libX11
+
+# GLFW Wayland backend
+leak:_glfwCreateWindowWayland

@@ -4,7 +4,7 @@
 #include "../world/block.h"
 
 enum item_type {
-    ITEM_TYPE_EMPTY,
+    ITEM_TYPE_EMPTY = 0,
     ITEM_TYPE_GRASS_BLOCK,
     ITEM_TYPE_DIRT_BLOCK,
     ITEM_TYPE_STONE_BLOCK,

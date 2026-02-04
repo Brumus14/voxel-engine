@@ -2,6 +2,7 @@
 
 #include "cglm/cglm.h"
 #include "../util/gl.h"
+#include "element.h"
 #include "image.h"
 
 void gui_init(struct gui *gui, struct window *window) {
@@ -15,6 +16,16 @@ void gui_init(struct gui *gui, struct window *window) {
 
     gui->gl_orthographic_matrix_location = GL_CALL_R(
         glGetUniformLocation(gui->shader_program.gl_id, "orthographic"), GLint);
+}
+
+void gui_destroy(struct gui *gui) {
+    shader_program_destroy(&gui->shader_program);
+
+    for (int i = 0; i < gui->element_count; i++) {
+        gui_element_destroy(&gui->elements[i]);
+    }
+
+    free(gui->elements);
 }
 
 void gui_update_matrix_uniform(struct gui *gui) {
@@ -53,9 +64,4 @@ void gui_add_image(struct gui *gui, struct gui_image *image) {
     element.type = GUI_ELEMENT_TYPE_IMAGE;
 
     gui_add_element(gui, element);
-}
-
-void gui_destroy(struct gui *gui) {
-    free(gui->elements);
-    shader_program_destroy(&gui->shader_program);
 }

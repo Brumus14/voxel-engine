@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void list_node_init(struct list_node *node, void *data) {
+void linked_list_node_init(struct linked_list_node *node, void *data) {
     node->data = data;
     node->previous = NULL;
     node->next = NULL;
@@ -15,9 +15,22 @@ void linked_list_init(struct linked_list *list, unsigned long data_size) {
     list->data_size = data_size;
 }
 
+void linked_list_destroy(struct linked_list *list) {
+    struct linked_list_node *node = list->head;
+
+    while (node) {
+        struct linked_list_node *next_node = node->next;
+        free(node);
+        node = next_node;
+    }
+
+    list->head = NULL;
+    list->tail = NULL;
+}
+
 void linked_list_insert_beginning(struct linked_list *list, void *data) {
-    struct list_node *new_node = malloc(sizeof(struct list_node));
-    list_node_init(new_node, data);
+    struct linked_list_node *new_node = malloc(sizeof(struct linked_list_node));
+    linked_list_node_init(new_node, data);
 
     new_node->next = list->head;
 
@@ -31,8 +44,8 @@ void linked_list_insert_beginning(struct linked_list *list, void *data) {
 }
 
 void linked_list_insert_end(struct linked_list *list, void *data) {
-    struct list_node *new_node = malloc(sizeof(struct list_node));
-    list_node_init(new_node, data);
+    struct linked_list_node *new_node = malloc(sizeof(struct linked_list_node));
+    linked_list_node_init(new_node, data);
 
     new_node->previous = list->tail;
 
@@ -58,10 +71,11 @@ void linked_list_insert(struct linked_list *list, void *data, int index) {
     } else if (index == list_length) {
         linked_list_insert_end(list, data);
     } else {
-        struct list_node *new_node = malloc(sizeof(struct list_node));
-        list_node_init(new_node, data);
+        struct linked_list_node *new_node =
+            malloc(sizeof(struct linked_list_node));
+        linked_list_node_init(new_node, data);
 
-        struct list_node *node = list->head;
+        struct linked_list_node *node = list->head;
 
         for (int i = 0; i < index; i++) {
             node = node->next;
@@ -84,7 +98,7 @@ void *linked_list_remove_beginning(struct linked_list *list) {
         return NULL;
     }
 
-    struct list_node *removed_node = list->head;
+    struct linked_list_node *removed_node = list->head;
     list->head = list->head->next;
 
     if (list->head) {
@@ -105,7 +119,7 @@ void *linked_list_remove_end(struct linked_list *list) {
         return NULL;
     }
 
-    struct list_node *removed_node = list->tail;
+    struct linked_list_node *removed_node = list->tail;
     list->tail = list->tail->previous;
 
     if (list->tail) {
@@ -133,7 +147,7 @@ void *linked_list_remove(struct linked_list *list, int index) {
     } else if (index == list_length - 1) {
         return linked_list_remove_end(list);
     } else {
-        struct list_node *removed_node = list->head;
+        struct linked_list_node *removed_node = list->head;
 
         for (int i = 0; i < index; i++) {
             removed_node = removed_node->next;
@@ -150,22 +164,9 @@ void *linked_list_remove(struct linked_list *list, int index) {
     }
 }
 
-void linked_list_destroy(struct linked_list *list) {
-    struct list_node *node = list->head;
-
-    while (node) {
-        struct list_node *next_node = node->next;
-        free(node);
-        node = next_node;
-    }
-
-    list->head = NULL;
-    list->tail = NULL;
-}
-
 unsigned int linked_list_length(struct linked_list *list) {
     int length = 0;
-    struct list_node *current_node = list->head;
+    struct linked_list_node *current_node = list->head;
 
     while (current_node) {
         length++;
@@ -180,7 +181,7 @@ void *linked_list_get(struct linked_list *list, int index) {
         return NULL;
     }
 
-    struct list_node *current_node = list->head;
+    struct linked_list_node *current_node = list->head;
 
     for (int i = 0; i < index; i++) {
         current_node = current_node->next;
@@ -194,7 +195,7 @@ bool linked_list_is_empty(struct linked_list *list) {
 }
 
 unsigned int linked_list_find(struct linked_list *list, void *data) {
-    struct list_node *current_node = list->head;
+    struct linked_list_node *current_node = list->head;
     int index = 0;
 
     while (current_node != list->tail &&

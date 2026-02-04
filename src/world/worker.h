@@ -18,14 +18,7 @@ struct worker_generate_chunk_mesh_args {
     struct chunk *neighbors[6];
 };
 
-struct worker_generate_chunk_args {
-    struct chunk *chunk;
-    float seed;
-    struct thread_pool *workers;
-};
-
 void *worker_generate_chunk_terrain(void *arg);
 void *worker_generate_chunk_mesh(void *arg);
-void *worker_generate_chunk(void *arg);
 
 #endif

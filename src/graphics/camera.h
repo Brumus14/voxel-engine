@@ -22,6 +22,7 @@ struct camera {
 void camera_init(struct camera *camera, struct vec3d position,
                  struct vec3d rotation, double fov, double aspect_ratio,
                  double near_plane, double far_plane);
+void camera_destroy(struct camera *camera);
 void camera_set_position(struct camera *camera, struct vec3d position);
 void camera_move(struct camera *camera, struct vec3d movement_delta);
 void camera_update_matrix_uniforms(struct camera *camera);

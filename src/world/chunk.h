@@ -15,7 +15,7 @@
 #define CHUNK_VERTEX_SIZE 8
 
 enum chunk_state {
-    CHUNK_STATE_NEEDS_TERRAIN,
+    CHUNK_STATE_NEEDS_TERRAIN = 0,
     // CHUNK_STATE_QUEUED_TERRAIN,
     CHUNK_STATE_GENERATING_TERRAIN,
     CHUNK_STATE_NEEDS_MESH,
@@ -23,16 +23,17 @@ enum chunk_state {
     CHUNK_STATE_GENERATING_MESH,
     CHUNK_STATE_NEEDS_BUFFERS,
     CHUNK_STATE_READY,
+    CHUNK_STATE_UNLOADED,
 };
 
 struct chunk {
     atomic_bool visible;
     _Atomic enum chunk_state state;
-    atomic_bool unloaded;
-    atomic_int in_use; // Rename to ref count? Is this needed?
+    atomic_int ref_count;
     pthread_mutex_t lock;
     struct vec3i position;
-    enum block_type blocks[CHUNK_SIZE_Z * CHUNK_SIZE_Y * CHUNK_SIZE_X];
+    // enum block_type blocks[CHUNK_SIZE_Z * CHUNK_SIZE_Y * CHUNK_SIZE_X];
+    enum block_type *blocks;
     struct tilemap *tilemap;
     float *vertices;
     unsigned int *indices;
@@ -76,7 +77,7 @@ static const float FACE_NORMALS[6][3] = {
 static const int INDEX_ORDER[6] = {0, 1, 2,
                                    0, 2, 3};
 
-// Left, Right, Bottom, Top, Back, Front
+// Order specified in direction.h
 static const struct vec3i NEIGHBOR_OFFSETS[6] = {
     {-1,  0,  0},
     { 1,  0,  0},
@@ -90,17 +91,12 @@ static const struct vec3i NEIGHBOR_OFFSETS[6] = {
 void chunk_init(struct chunk *chunk, struct vec3i position,
                 struct tilemap *tilemap, bool visible);
 void chunk_destroy(struct chunk *chunk);
-// void chunk_update_mesh(struct chunk *chunk);
 void chunk_update_buffers(struct chunk *chunk);
 void chunk_draw(struct chunk *chunk);
-// Position be pointer?
 void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors);
+// Position be pointer?
 enum block_type chunk_get_block(struct chunk *chunk, struct vec3i position);
-enum block_type chunk_get_block_safe(struct chunk *chunk,
-                                     struct vec3i position);
 void chunk_set_block(struct chunk *chunk, struct vec3i position,
                      enum block_type type);
-void chunk_set_block_safe(struct chunk *chunk, struct vec3i position,
-                          enum block_type type);
 
 #endif

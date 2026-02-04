@@ -22,6 +22,7 @@ struct thread_pool {
 
 void *thread_pool_task_main(void *arg);
 void thread_pool_init(struct thread_pool *pool, unsigned int count);
+void thread_pool_destroy(struct thread_pool *pool);
 void thread_pool_schedule(struct thread_pool *pool,
                           thread_pool_task_function function, void *argument);
 
