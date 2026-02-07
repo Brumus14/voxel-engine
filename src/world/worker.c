@@ -52,6 +52,10 @@ void *worker_generate_chunk_mesh(void *arg) {
     struct chunk **neighbors = args->neighbors;
 
     if (atomic_load(&chunk->unloaded)) {
+        for (int i = 0; i < 6; i++) {
+            atomic_fetch_sub(&neighbors[i]->ref_count, 1);
+        }
+
         free(arg);
         atomic_fetch_sub(&chunk->ref_count, 1);
         return NULL;

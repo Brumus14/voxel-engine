@@ -221,8 +221,6 @@ void world_update(struct world *world) {
         struct vec3i *position = dynamic_array_get(&world->unloaded_chunks, i);
         struct chunk *chunk = hash_map_remove(&world->chunks, position);
 
-        // Surely shouldn't need this, must be some wierd ref counting or being
-        // used as neighbors
         if (atomic_load(&chunk->ref_count) == 0) {
             WORLD_LOG({
                 printf("unloaded ");

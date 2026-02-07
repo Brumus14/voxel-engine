@@ -35,7 +35,7 @@ bool keyboard_key_up(struct keyboard *keyboard, enum keycode key) {
 }
 
 bool keyboard_key_just_up(struct keyboard *keyboard, enum keycode key) {
-    return (keyboard->keys_just_up[key] == true);
+    return keyboard->keys_just_up[key];
 }
 
 bool keyboard_key_down(struct keyboard *keyboard, enum keycode key) {
@@ -43,5 +43,5 @@ bool keyboard_key_down(struct keyboard *keyboard, enum keycode key) {
 }
 
 bool keyboard_key_just_down(struct keyboard *keyboard, enum keycode key) {
-    return (keyboard->keys_just_down[key] == true);
+    return keyboard->keys_just_down[key];
 }

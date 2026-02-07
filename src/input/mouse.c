@@ -45,7 +45,7 @@ bool mouse_button_up(struct mouse *mouse, enum mouse_button button) {
 }
 
 bool mouse_button_just_up(struct mouse *mouse, enum mouse_button button) {
-    return (mouse->buttons_just_up[button] == true);
+    return mouse->buttons_just_up[button];
 }
 
 bool mouse_button_down(struct mouse *mouse, enum mouse_button button) {
@@ -53,7 +53,7 @@ bool mouse_button_down(struct mouse *mouse, enum mouse_button button) {
 }
 
 bool mouse_button_just_down(struct mouse *mouse, enum mouse_button button) {
-    return (mouse->buttons_just_down[button] == true);
+    return mouse->buttons_just_down[button];
 }
 
 void mouse_set_position(struct mouse *mouse, struct vec2d position) {

@@ -66,7 +66,7 @@ void chunk_update_buffers(struct chunk *chunk) {
 void chunk_draw(struct chunk *chunk) {
     static struct stopwatch s;
     stopwatch_start(&s);
-    if (atomic_load(&chunk->visible) == false) {
+    if (!atomic_load(&chunk->visible) || atomic_load(&chunk->unloaded)) {
         return;
     }
 
