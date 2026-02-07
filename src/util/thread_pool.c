@@ -21,9 +21,7 @@ void *thread_pool_thread_main(void *arg) {
         while (queue_is_empty(tasks)) {
             pthread_cond_wait(task_available, tasks_lock);
 
-            if (WORLD_LOGGING) {
-                printf("waiting\n");
-            }
+            WORLD_LOG(printf("waiting\n"));
         }
 
         struct thread_pool_task *task = queue_dequeue(tasks);

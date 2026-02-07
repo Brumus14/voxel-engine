@@ -3,15 +3,19 @@
 #include "string.h"
 #include <threads.h>
 #include "../util/direction.h"
+#include "../util/stopwatch.h"
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                struct tilemap *tilemap, bool visible) {
+                struct tilemap *tilemap) {
     chunk->position = position;
     chunk->blocks = NULL;
-    atomic_init(&chunk->state, CHUNK_STATE_NEEDS_TERRAIN);
+    atomic_init(&chunk->blocks_state, CHUNK_BLOCKS_STATE_UNGENERATED);
+    atomic_init(&chunk->mesh_state, CHUNK_MESH_STATE_UNGENERATED);
+    atomic_init(&chunk->buffers_stale, false);
     atomic_init(&chunk->ref_count, 0);
     pthread_mutex_init(&chunk->lock, NULL);
-    atomic_init(&chunk->visible, visible);
+    atomic_init(&chunk->visible, false);
+    atomic_init(&chunk->unloaded, false);
     chunk->tilemap = tilemap;
 
     chunk->vertices = NULL;
@@ -60,6 +64,8 @@ void chunk_update_buffers(struct chunk *chunk) {
 
 // bind texture
 void chunk_draw(struct chunk *chunk) {
+    static struct stopwatch s;
+    stopwatch_start(&s);
     if (atomic_load(&chunk->visible) == false) {
         return;
     }
@@ -73,6 +79,8 @@ void chunk_draw(struct chunk *chunk) {
 
     renderer_draw_elements(DRAW_MODE_TRIANGLES, index_count,
                            INDEX_TYPE_UNSIGNED_INT);
+    stopwatch_end(&s);
+    // printf("TIMEEEEEE: %f\n", stopwatch_time(&s));
 }
 
 // Maybe return all faces to call less times
@@ -291,4 +299,5 @@ inline void chunk_set_block(struct chunk *chunk, struct vec3i position,
                             enum block_type type) {
     chunk->blocks[position.x + position.y * CHUNK_SIZE_X +
                   position.z * (CHUNK_SIZE_X * CHUNK_SIZE_Y)] = type;
+    atomic_store(&chunk->mesh_state, CHUNK_MESH_STATE_NEEDED);
 }

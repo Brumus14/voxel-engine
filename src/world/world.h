@@ -6,6 +6,7 @@
 #include "../util/thread_pool.h"
 #include "../math/vec3.h"
 #include "../graphics/tilemap.h"
+#include "chunk.h"
 
 #define WORLD_WORKER_COUNT 12
 #define CHUNKS_BUCKET_COUNT 1024

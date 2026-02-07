@@ -31,7 +31,7 @@ void dynamic_array_insert_end(struct dynamic_array *array, void *data) {
 
     // Grow array
     if (array->element_count > array->capacity) {
-        array->capacity *= GROWTH_FACTOR;
+        array->capacity *= GROWTH_FACTOR; // Growth factor might be decimal
         array->array =
             realloc(array->array, array->capacity * array->value_size);
     }

@@ -158,10 +158,9 @@ void player_update(struct player *player, struct window *window,
 }
 
 struct player_manage_chunks_chunk_context {
+    struct world *world;
     struct vec3i *player_chunk;
     int *render_distance;
-    struct vec3i **unloaded_chunks;
-    int *unloaded_chunk_count;
 };
 
 void player_manage_chunks_chunk(void *key, void *value, void *context) {
@@ -170,26 +169,18 @@ void player_manage_chunks_chunk(void *key, void *value, void *context) {
     struct chunk *chunk = value;
 
     struct player_manage_chunks_chunk_context *c = context;
+    struct world *world = c->world;
     int *render_distance = c->render_distance;
     struct vec3i *player_chunk = c->player_chunk;
-    struct vec3i **unloaded_chunks = c->unloaded_chunks;
-    int *unloaded_chunk_count = c->unloaded_chunk_count;
 
     // if (!chunk) {
     //     return;
     // }
 
-    if (chunk->position.x < player_chunk->x - *render_distance ||
-        chunk->position.x > player_chunk->x + *render_distance ||
-        chunk->position.y < player_chunk->y - *render_distance ||
-        chunk->position.y > player_chunk->y + *render_distance ||
-        chunk->position.z < player_chunk->z - *render_distance ||
-        chunk->position.z > player_chunk->z + *render_distance) {
-        (*unloaded_chunk_count)++;
-        // Realloc'ing is probably pretty inefficient
-        *unloaded_chunks = realloc(*unloaded_chunks, *unloaded_chunk_count *
-                                                         sizeof(struct vec3i));
-        (*unloaded_chunks)[*unloaded_chunk_count - 1] = chunk->position;
+    if (abs(player_chunk->x - chunk->position.x) > *render_distance ||
+        abs(player_chunk->y - chunk->position.y) > *render_distance ||
+        abs(player_chunk->z - chunk->position.z) > *render_distance) {
+        world_unload_chunk(world, *chunk_position);
     }
 }
 
@@ -198,28 +189,29 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 3; // move to a variable
+    int render_distance = 8; // move to a variable
     struct vec3i player_chunk;
     player_chunk.x = floor(player->position.x / CHUNK_SIZE_X);
     player_chunk.y = floor(player->position.y / CHUNK_SIZE_Y);
     player_chunk.z = floor(player->position.z / CHUNK_SIZE_Z);
 
-    struct vec3i *unloaded_chunks = NULL; // TODO: DONT USE THIS
-    int unloaded_chunk_count = 0;
-
     // Lots of unsafe chunk loops
     struct player_manage_chunks_chunk_context context = {
-        &player_chunk, &render_distance, &unloaded_chunks,
-        &unloaded_chunk_count};
+        world,
+        &player_chunk,
+        &render_distance,
+    };
+
     hash_map_for_each(&world->chunks, player_manage_chunks_chunk, &context);
 
-    for (int i = 0; i < unloaded_chunk_count; i++) {
-        world_unload_chunk(world, unloaded_chunks[i]);
-    }
+    // Move this somewhere better
+    // int chunk_load_distance = render_distance + 1;
+    int chunk_load_distance = render_distance;
 
-    for (int z = -render_distance; z <= render_distance; z++) {
-        for (int y = -render_distance; y <= render_distance; y++) {
-            for (int x = -render_distance; x <= render_distance; x++) {
+    for (int z = -chunk_load_distance; z <= chunk_load_distance; z++) {
+        for (int y = -chunk_load_distance; y <= chunk_load_distance; y++) {
+            for (int x = -chunk_load_distance; x <= chunk_load_distance; x++) {
+                // TODO: Shouldn't modify hashmap when iterating
                 world_load_chunk(world, (struct vec3i){player_chunk.x + x,
                                                        player_chunk.y + y,
                                                        player_chunk.z + z});

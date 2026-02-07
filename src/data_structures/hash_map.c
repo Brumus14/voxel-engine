@@ -17,11 +17,13 @@ void *hash_map_node_destroy(struct hash_map_node *node) {
 
 void hash_map_init(struct hash_map *map, int bucket_count,
                    unsigned long key_size, unsigned long value_size,
-                   hash_map_hash_function hash_function) {
+                   hash_map_hash_function hash_function,
+                   hash_map_key_compare_function key_compare_function) {
     map->bucket_count = bucket_count;
     map->key_size = key_size;
     map->value_size = value_size;
     map->hash_function = hash_function;
+    map->key_compare_function = key_compare_function;
     map->buckets = malloc(bucket_count * sizeof(struct hash_map_node *));
     map->iter_bucket = 0;
     map->iter_current_node = NULL;
@@ -48,13 +50,14 @@ void hash_map_destroy(struct hash_map *map) {
 
 static int c = 0;
 
+#include "../math/math_util.h"
 void *hash_map_put(struct hash_map *map, void *key, void *value) {
     // printf("%d\n", ++c);
     // Should avoid copying them maybe implement arena allocator
     void *owned_key = malloc(map->key_size);
     memcpy(owned_key, key, map->key_size);
 
-    int index = map->hash_function(owned_key) % map->bucket_count;
+    unsigned int index = map->hash_function(owned_key) % map->bucket_count;
     struct hash_map_node *bucket_head = map->buckets[index];
 
     if (!bucket_head) {
@@ -67,7 +70,7 @@ void *hash_map_put(struct hash_map *map, void *key, void *value) {
     struct hash_map_node *current_node = bucket_head;
 
     while (current_node) {
-        if (memcmp(current_node->key, owned_key, map->key_size) == 0) {
+        if (map->key_compare_function(current_node->key, owned_key)) {
             struct hash_map_node *next_node = current_node->next;
             void *old_value = hash_map_node_destroy(current_node);
             hash_map_node_init(current_node, owned_key, value);
@@ -91,12 +94,12 @@ void *hash_map_put(struct hash_map *map, void *key, void *value) {
 }
 
 void *hash_map_get(struct hash_map *map, void *key) {
-    int index = map->hash_function(key) % map->bucket_count;
+    unsigned int index = map->hash_function(key) % map->bucket_count;
 
     struct hash_map_node *current_node = map->buckets[index];
 
     while (current_node) {
-        if (memcmp(current_node->key, key, map->key_size) == 0) {
+        if (map->key_compare_function(current_node->key, key)) {
             return current_node->value;
         }
 
@@ -108,7 +111,7 @@ void *hash_map_get(struct hash_map *map, void *key) {
 
 void *hash_map_remove(struct hash_map *map, void *key) {
     // printf("%d\n", --c);
-    int index = map->hash_function(key) % map->bucket_count;
+    unsigned int index = map->hash_function(key) % map->bucket_count;
 
     struct hash_map_node *current_node = map->buckets[index];
     struct hash_map_node *previous_node = NULL;
@@ -116,7 +119,7 @@ void *hash_map_remove(struct hash_map *map, void *key) {
     while (current_node) {
         struct hash_map_node *next_node = current_node->next;
 
-        if (memcmp(current_node->key, key, map->key_size) == 0) {
+        if (map->key_compare_function(current_node->key, key)) {
             void *value = hash_map_node_destroy(current_node);
             free(current_node);
 

@@ -198,6 +198,7 @@ unsigned int linked_list_find(struct linked_list *list, void *data) {
     struct linked_list_node *current_node = list->head;
     int index = 0;
 
+    // Memcmp is dodgy since struct padding
     while (current_node != list->tail &&
            memcmp(current_node->data, data, list->data_size) == 0) {
         current_node = current_node->next;

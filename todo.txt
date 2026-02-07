@@ -20,6 +20,11 @@ neighbors:
 5, -10, -12 - added at 635523
 
 
+Ref counting glitches i think
+Moving fast loads tons of chunks that take ages to unload
+Stop polling for chunk changes like MESH_NEEDED
+Load chunks as circle not rectangle around player
+Renduce looping in main, such as loading chunks in player
 Check all init functions have a correct destroy
 Add get functions to renderer
 Regenerate border chunks when loading new chunks, or have border of terrain generated hidden chunks to correctly generate border visible chunks

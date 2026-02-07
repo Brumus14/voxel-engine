@@ -14,25 +14,36 @@
 
 #define CHUNK_VERTEX_SIZE 8
 
-enum chunk_state {
-    CHUNK_STATE_NEEDS_TERRAIN = 0,
-    // CHUNK_STATE_QUEUED_TERRAIN,
-    CHUNK_STATE_GENERATING_TERRAIN,
-    CHUNK_STATE_NEEDS_MESH,
-    CHUNK_STATE_QUEUED_MESH,
-    CHUNK_STATE_GENERATING_MESH,
-    CHUNK_STATE_NEEDS_BUFFERS,
-    CHUNK_STATE_READY,
-    CHUNK_STATE_UNLOADED,
+// Rename to terrain?
+enum chunk_blocks_state {
+    CHUNK_BLOCKS_STATE_UNGENERATED = 0,
+    CHUNK_BLOCKS_STATE_NEEDED,
+    CHUNK_BLOCKS_STATE_QUEUED,
+    CHUNK_BLOCKS_STATE_GENERATING,
+    CHUNK_BLOCKS_STATE_GENERATED,
 };
 
+// Rename needed to stale?
+// Rename ungenerated
+enum chunk_mesh_state {
+    CHUNK_MESH_STATE_UNGENERATED = 0,
+    CHUNK_MESH_STATE_NEEDED,
+    CHUNK_MESH_STATE_QUEUED,
+    CHUNK_MESH_STATE_GENERATING,
+    CHUNK_MESH_STATE_GENERATED,
+};
+
+// Order structs for packing
 struct chunk {
     atomic_bool visible;
-    _Atomic enum chunk_state state;
+    atomic_bool unloaded; // Is there better name
+    _Atomic(enum chunk_blocks_state) blocks_state;
+    _Atomic(enum chunk_mesh_state) mesh_state;
+    atomic_bool buffers_stale;
     atomic_int ref_count;
     pthread_mutex_t lock;
     struct vec3i position;
-    // enum block_type blocks[CHUNK_SIZE_Z * CHUNK_SIZE_Y * CHUNK_SIZE_X];
+    // Read write lock?
     enum block_type *blocks;
     struct tilemap *tilemap;
     float *vertices;
@@ -89,7 +100,7 @@ static const struct vec3i NEIGHBOR_OFFSETS[6] = {
 // clang-format on
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                struct tilemap *tilemap, bool visible);
+                struct tilemap *tilemap);
 void chunk_destroy(struct chunk *chunk);
 void chunk_update_buffers(struct chunk *chunk);
 void chunk_draw(struct chunk *chunk);

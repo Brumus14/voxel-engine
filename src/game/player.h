@@ -7,8 +7,8 @@
 #include "../world/world.h"
 #include "../world/block.h"
 
-// #define DEFAULT_SPEED 10.92
-#define DEFAULT_SPEED 2000
+#define DEFAULT_SPEED 10.92
+// #define DEFAULT_SPEED 2000
 // TODO: sprinting not actually implemented
 #define SPRINTING_SPEED 21.6
 
