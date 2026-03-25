@@ -23,7 +23,7 @@ void renderer_clear_buffers();
 void renderer_clear_depth_buffer();
 void renderer_set_clear_colour(float red, float green, float blue, float alpha);
 void renderer_set_viewport(int x, int y, int width, int height);
-void renderer_draw_elements(enum draw_mode mode, int count,
+void renderer_draw_elements(enum draw_mode mode, unsigned int count,
                             enum index_type type);
 void renderer_set_polygon_mode(enum polygon_mode mode);
 

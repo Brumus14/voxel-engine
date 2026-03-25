@@ -6,8 +6,8 @@
 #define GROWTH_FACTOR 2
 
 void dynamic_array_init(struct dynamic_array *array, unsigned long data_size) {
-    array->array = malloc(data_size);
     array->capacity = 1;
+    array->array = malloc(array->capacity * data_size);
     array->element_count = 0;
     array->value_size = data_size;
 }
@@ -21,12 +21,12 @@ void *dynamic_array_get(struct dynamic_array *array, unsigned long index) {
 }
 
 void dynamic_array_set(struct dynamic_array *array, unsigned long index,
-                       void *data) {
+                       const void *data) {
     // Use indexing maybe?
     memcpy(array->array + index * array->value_size, data, array->value_size);
 }
 
-void dynamic_array_insert_end(struct dynamic_array *array, void *data) {
+void dynamic_array_insert_end(struct dynamic_array *array, const void *data) {
     array->element_count++;
 
     // Grow array
@@ -36,6 +36,7 @@ void dynamic_array_insert_end(struct dynamic_array *array, void *data) {
             realloc(array->array, array->capacity * array->value_size);
     }
 
+    // Is memcpy ok here
     memcpy(array->array + (array->element_count - 1) * array->value_size, data,
            array->value_size);
 }
@@ -50,4 +51,11 @@ void *dynamic_array_remove_end(struct dynamic_array *array) {
 
 void dynamic_array_clear(struct dynamic_array *array) {
     array->element_count = 0;
+}
+
+void dynamic_array_insert_set_end(struct dynamic_array *array, const void *set,
+                                  int count) {
+    for (int i = 0; i < count; i++) {
+        dynamic_array_insert_end(array, set + array->value_size * i);
+    }
 }

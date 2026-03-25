@@ -21,6 +21,8 @@ struct vec3i vec3i_sub(struct vec3i v1, struct vec3i v2);
 void vec3i_scalar_multiply_to(struct vec3i v, int scalar, struct vec3i *dest);
 struct vec3i vec3i_scalar_multiply(struct vec3i v, int scalar);
 struct vec3i vec3i_cross_product(struct vec3i v1, struct vec3i v2);
+void vec3i_dot_product_to(struct vec3i v1, struct vec3i v2, struct vec3i *dest);
+struct vec3i vec3i_dot_product(struct vec3i v1, struct vec3i v2);
 bool vec3i_equal(struct vec3i v1, struct vec3i v2);
 
 #endif

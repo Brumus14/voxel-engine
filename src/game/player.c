@@ -189,11 +189,12 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 8; // move to a variable
-    struct vec3i player_chunk;
-    player_chunk.x = floor(player->position.x / CHUNK_SIZE_X);
-    player_chunk.y = floor(player->position.y / CHUNK_SIZE_Y);
-    player_chunk.z = floor(player->position.z / CHUNK_SIZE_Z);
+    int render_distance = 6; // move to a variable
+    struct vec3i player_chunk = {
+        floor(player->position.x / CHUNK_SIZE_X),
+        floor(player->position.y / CHUNK_SIZE_Y),
+        floor(player->position.z / CHUNK_SIZE_Z),
+    };
 
     // Lots of unsafe chunk loops
     struct player_manage_chunks_chunk_context context = {
@@ -212,15 +213,20 @@ void player_manage_chunks(struct player *player, struct world *world) {
         for (int y = -chunk_load_distance; y <= chunk_load_distance; y++) {
             for (int x = -chunk_load_distance; x <= chunk_load_distance; x++) {
                 // TODO: Shouldn't modify hashmap when iterating
-                world_load_chunk(world, (struct vec3i){player_chunk.x + x,
-                                                       player_chunk.y + y,
-                                                       player_chunk.z + z});
+                if (pow(x - player_chunk.x, 2) + pow(y - player_chunk.y, 2) +
+                        pow(z - player_chunk.z, 2) <=
+                    pow(chunk_load_distance, 2)) {
+                    world_load_chunk(world, (struct vec3i){player_chunk.x + x,
+                                                           player_chunk.y + y,
+                                                           player_chunk.z + z});
+                }
             }
         }
     }
 }
 
 // if pointers are null
+// Shouldnt this return the block type
 bool player_get_target_block(struct player *player, struct world *world,
                              struct vec3d *position_dest,
                              enum block_face *face) {
@@ -361,11 +367,8 @@ void player_place_block(struct player *player, struct world *world,
     struct vec3d block_position = target_block;
 
     switch (target_face) {
-    case BLOCK_FACE_FRONT:
-        block_position.z++;
-        break;
-    case BLOCK_FACE_TOP:
-        block_position.y++;
+    case BLOCK_FACE_LEFT:
+        block_position.x--;
         break;
     case BLOCK_FACE_RIGHT:
         block_position.x++;
@@ -373,11 +376,14 @@ void player_place_block(struct player *player, struct world *world,
     case BLOCK_FACE_BOTTOM:
         block_position.y--;
         break;
-    case BLOCK_FACE_LEFT:
-        block_position.x--;
+    case BLOCK_FACE_TOP:
+        block_position.y++;
         break;
     case BLOCK_FACE_BACK:
         block_position.z--;
+        break;
+    case BLOCK_FACE_FRONT:
+        block_position.z++;
         break;
     }
 

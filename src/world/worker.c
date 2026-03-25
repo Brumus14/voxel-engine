@@ -25,15 +25,11 @@ void *worker_generate_chunk_terrain(void *arg) {
 
     enum block_type *new_blocks =
         world_generation_chunk_terrain(chunk->position, seed);
-    enum block_type *old_blocks = chunk->blocks;
 
-    // Better locking
-    pthread_mutex_lock(&chunk->lock);
-    chunk->blocks = new_blocks;
+    enum block_type *old_blocks = atomic_exchange(&chunk->blocks, new_blocks);
 
     WORLD_LOG(printf("generated terrain for %d,%d,%d\n", chunk->position.x,
                      chunk->position.y, chunk->position.z));
-    pthread_mutex_unlock(&chunk->lock);
 
     free(old_blocks);
 
@@ -63,12 +59,10 @@ void *worker_generate_chunk_mesh(void *arg) {
 
     atomic_store(&chunk->mesh_state, CHUNK_MESH_STATE_GENERATING);
 
-    pthread_mutex_lock(&chunk->lock);
     chunk_generate_mesh(chunk, neighbors);
 
     WORLD_LOG(printf("generated mesh for %d,%d,%d\n", chunk->position.x,
                      chunk->position.y, chunk->position.z))
-    pthread_mutex_unlock(&chunk->lock);
 
     for (int i = 0; i < 6; i++) {
         atomic_fetch_sub(&neighbors[i]->ref_count, 1);

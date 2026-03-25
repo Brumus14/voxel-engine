@@ -20,6 +20,8 @@ neighbors:
 5, -10, -12 - added at 635523
 
 
+Use const void *
+Order structs for padding and caching
 Ref counting glitches i think
 Moving fast loads tons of chunks that take ages to unload
 Stop polling for chunk changes like MESH_NEEDED
@@ -55,3 +57,4 @@ Chunk occlusion culling
 I think rendering is like blocked especially noticable when initially generating lots of chunks
 Break out of worker tasks early by checking unloaded flag
 Pass by reference more
+Only load chunks on player movement

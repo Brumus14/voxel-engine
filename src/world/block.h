@@ -13,12 +13,12 @@ enum block_type {
 };
 
 enum block_face {
-    BLOCK_FACE_FRONT = 0,
-    BLOCK_FACE_TOP,
+    BLOCK_FACE_LEFT = 0,
     BLOCK_FACE_RIGHT,
     BLOCK_FACE_BOTTOM,
-    BLOCK_FACE_LEFT,
+    BLOCK_FACE_TOP,
     BLOCK_FACE_BACK,
+    BLOCK_FACE_FRONT,
 };
 
 // rename to texture indexes?

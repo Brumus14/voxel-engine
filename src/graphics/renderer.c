@@ -61,7 +61,7 @@ GLenum to_gl_index_type(enum index_type type) {
     }
 }
 
-void renderer_draw_elements(enum draw_mode mode, int count,
+void renderer_draw_elements(enum draw_mode mode, unsigned int count,
                             enum index_type type) {
     GL_CALL(glDrawElements(to_gl_draw_mode(mode), count, to_gl_index_type(type),
                            0));

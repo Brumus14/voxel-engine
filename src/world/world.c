@@ -97,9 +97,6 @@ void world_unload_chunk(struct world *world, struct vec3i position) {
         putchar('\n');
     });
 
-    // Can i just remove
-    // struct chunk *chunk = hash_map_get(&world->chunks, &position);
-    // atomic_store(&chunk->state, CHUNK_STATE_UNLOADED);
     // Can i add to array immediately
     // dynamic_array_insert_end(&world->unloaded_chunks, &position);
 }
@@ -162,8 +159,10 @@ void world_update_chunk(void *key, void *value, void *arg) {
 
             neighbors[i] = hash_map_get(&world->chunks, &neighbor_position);
 
-            if (!neighbors[i] || atomic_load(&neighbors[i]->blocks_state) !=
-                                     CHUNK_BLOCKS_STATE_GENERATED) {
+            if (!neighbors[i] ||
+                atomic_load(&neighbors[i]->blocks_state) !=
+                    CHUNK_BLOCKS_STATE_GENERATED ||
+                atomic_load(&neighbors[i]->unloaded)) {
                 neighbors_terrain_generated = false;
                 break;
             }
@@ -221,16 +220,15 @@ void world_update(struct world *world) {
         struct vec3i *position = dynamic_array_get(&world->unloaded_chunks, i);
         struct chunk *chunk = hash_map_remove(&world->chunks, position);
 
-        if (atomic_load(&chunk->ref_count) == 0) {
-            WORLD_LOG({
-                printf("unloaded ");
-                vec3i_print(chunk->position);
-                putchar('\n');
-            });
+        // Someone else is referencing it as a neighbor
+        WORLD_LOG({
+            printf("unloaded ");
+            vec3i_print(chunk->position);
+            putchar('\n');
+        });
 
-            chunk_destroy(chunk);
-            free(chunk);
-        }
+        chunk_destroy(chunk);
+        free(chunk);
     }
 }
 
@@ -291,6 +289,8 @@ void world_set_block(struct world *world, enum block_type type,
                                          mod(position.z, CHUNK_SIZE_Z)};
 
     chunk_set_block(chunk, block_chunk_position, type);
+
+    atomic_store(&chunk->mesh_state, CHUNK_MESH_STATE_NEEDED);
 
     // Change to invalid then worker checks if neighbor needs regenerating too
     // This is very messy

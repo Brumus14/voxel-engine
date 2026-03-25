@@ -18,7 +18,8 @@ enum array_type {
 void vao_init(struct vao *vao);
 void vao_destroy(struct vao *vao);
 void vao_bind(struct vao *vao);
-void vao_attrib(struct vao *vao, int index, int size, enum array_type type,
-                bool normalised, size_t stride, void *pointer);
+void vao_attrib(struct vao *vao, unsigned int index, unsigned int size,
+                enum array_type type, bool normalised, unsigned int stride,
+                void *pointer);
 
 #endif

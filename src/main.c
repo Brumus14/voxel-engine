@@ -103,7 +103,7 @@ int main() {
             window_capture_cursor(&window);
             player_destroy_block(&player, &world);
         }
-        world_get_block(&world, vec3i_from_vec3d_floor(player.position));
+        player_destroy_block(&player, &world);
 
         if (mouse_button_just_down(&window.mouse, MOUSE_BUTTON_RIGHT)) {
             enum block_type current_block =

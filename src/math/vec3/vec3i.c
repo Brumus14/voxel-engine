@@ -44,6 +44,21 @@ struct vec3i vec3i_scalar_multiply(struct vec3i v, int scalar) {
     return result;
 }
 
+void vec3i_dot_product_to(struct vec3i v1, struct vec3i v2,
+                          struct vec3i *dest) {
+    dest->x = v1.x * v2.x;
+    dest->y = v1.y * v2.y;
+    dest->z = v1.z * v2.z;
+}
+
+struct vec3i vec3i_dot_product(struct vec3i v1, struct vec3i v2) {
+    struct vec3i result;
+
+    vec3i_dot_product_to(v1, v2, &result);
+
+    return result;
+}
+
 bool vec3i_equal(struct vec3i v1, struct vec3i v2) {
     if (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z) {
         return true;

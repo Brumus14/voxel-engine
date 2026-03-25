@@ -29,8 +29,9 @@ GLenum to_gl_array_type(enum array_type type) {
     }
 }
 
-void vao_attrib(struct vao *vao, int index, int size, enum array_type type,
-                bool normalised, size_t stride, void *pointer) {
+void vao_attrib(struct vao *vao, unsigned int index, unsigned int size,
+                enum array_type type, bool normalised, unsigned int stride,
+                void *pointer) {
     GLenum gl_type = to_gl_array_type(type);
 
     GL_CALL(glVertexAttribPointer(index, size, gl_type, normalised, stride,
