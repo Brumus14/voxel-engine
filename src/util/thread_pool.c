@@ -20,8 +20,6 @@ void *thread_pool_thread_main(void *arg) {
 
         while (queue_is_empty(tasks)) {
             pthread_cond_wait(task_available, tasks_lock);
-
-            WORLD_LOG(printf("waiting\n"));
         }
 
         struct thread_pool_task *task = queue_dequeue(tasks);
@@ -46,13 +44,13 @@ void thread_pool_init(struct thread_pool *pool, unsigned int count) {
 
     pool->threads = malloc(sizeof(pthread_t) * count);
 
-    for (int i = 0; i < count; i++) {
+    for (unsigned int i = 0; i < count; i++) {
         pthread_create(&pool->threads[i], NULL, thread_pool_thread_main, pool);
     }
 }
 
 void thread_pool_destroy(struct thread_pool *pool) {
-    for (int i = 0; i < pool->thread_count; i++) {
+    for (unsigned int i = 0; i < pool->thread_count; i++) {
         pthread_cancel(pool->threads[i]);
     }
 

@@ -2,7 +2,9 @@
 
 #include "block.h"
 #include "string.h"
+#include <stdatomic.h>
 #include <threads.h>
+#include <unistd.h>
 #include "../math/vec3.h"
 #include "../util/direction.h"
 #include "../util/stopwatch.h"
@@ -29,6 +31,7 @@ void chunk_init(struct chunk *chunk, struct vec3i position,
 
     vao_bind(&chunk->vao);
     bo_bind(&chunk->vbo);
+    bo_bind(&chunk->ibo);
 
     vao_attrib(&chunk->vao, 0, 3, VAO_TYPE_FLOAT, false,
                CHUNK_VERTEX_SIZE * sizeof(float), 0);
@@ -54,6 +57,8 @@ void chunk_update_buffers(struct chunk *chunk) {
     unsigned long ibo_size =
         chunk->indices.element_count * sizeof(unsigned int);
 
+    vao_bind(&chunk->vao);
+
     bo_upload(&chunk->vbo, vbo_size, chunk->vertices.array,
               BO_USAGE_STATIC_DRAW);
     bo_upload(&chunk->ibo, ibo_size, chunk->indices.array,
@@ -66,10 +71,7 @@ void chunk_draw(struct chunk *chunk) {
     }
 
     tilemap_bind(chunk->tilemap);
-
     vao_bind(&chunk->vao);
-    bo_bind(&chunk->vbo);
-    bo_bind(&chunk->ibo);
 
     renderer_draw_elements(DRAW_MODE_TRIANGLES, chunk->indices.element_count,
                            INDEX_TYPE_UNSIGNED_INT);
@@ -84,10 +86,11 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
                        chunk, (struct vec3i){position.x - 1, position.y,
                                              position.z}) == BLOCK_TYPE_EMPTY;
         } else {
-            return chunk_get_block(neighbors[DIRECTION_LEFT],
+            return !neighbors[DIRECTION_LEFT] ||
+                   chunk_get_block(neighbors[DIRECTION_LEFT],
                                    (struct vec3i){CHUNK_SIZE_X - 1, position.y,
                                                   position.z}) ==
-                   BLOCK_TYPE_EMPTY;
+                       BLOCK_TYPE_EMPTY;
         }
     case BLOCK_FACE_RIGHT:
         if (position.x < CHUNK_SIZE_X - 1) {
@@ -95,9 +98,10 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
                        chunk, (struct vec3i){position.x + 1, position.y,
                                              position.z}) == BLOCK_TYPE_EMPTY;
         } else {
-            return chunk_get_block(neighbors[DIRECTION_RIGHT],
+            return !neighbors[DIRECTION_RIGHT] ||
+                   chunk_get_block(neighbors[DIRECTION_RIGHT],
                                    (struct vec3i){0, position.y, position.z}) ==
-                   BLOCK_TYPE_EMPTY;
+                       BLOCK_TYPE_EMPTY;
         }
     case BLOCK_FACE_BOTTOM:
         if (position.y > 0) {
@@ -105,10 +109,11 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
                        chunk, (struct vec3i){position.x, position.y - 1,
                                              position.z}) == BLOCK_TYPE_EMPTY;
         } else {
-            return chunk_get_block(neighbors[DIRECTION_BOTTOM],
+            return !neighbors[DIRECTION_BOTTOM] ||
+                   chunk_get_block(neighbors[DIRECTION_BOTTOM],
                                    (struct vec3i){position.x, CHUNK_SIZE_Y - 1,
                                                   position.z}) ==
-                   BLOCK_TYPE_EMPTY;
+                       BLOCK_TYPE_EMPTY;
         }
     case BLOCK_FACE_TOP:
         if (position.y < CHUNK_SIZE_Y - 1) {
@@ -116,9 +121,10 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
                        chunk, (struct vec3i){position.x, position.y + 1,
                                              position.z}) == BLOCK_TYPE_EMPTY;
         } else {
-            return chunk_get_block(neighbors[DIRECTION_TOP],
+            return !neighbors[DIRECTION_TOP] ||
+                   chunk_get_block(neighbors[DIRECTION_TOP],
                                    (struct vec3i){position.x, 0, position.z}) ==
-                   BLOCK_TYPE_EMPTY;
+                       BLOCK_TYPE_EMPTY;
         }
     case BLOCK_FACE_BACK:
         if (position.z > 0) {
@@ -126,10 +132,11 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
                                                          position.z - 1}) ==
                    BLOCK_TYPE_EMPTY;
         } else {
-            return chunk_get_block(neighbors[DIRECTION_BACK],
+            return !neighbors[DIRECTION_BACK] ||
+                   chunk_get_block(neighbors[DIRECTION_BACK],
                                    (struct vec3i){position.x, position.y,
                                                   CHUNK_SIZE_Z - 1}) ==
-                   BLOCK_TYPE_EMPTY;
+                       BLOCK_TYPE_EMPTY;
         }
     case BLOCK_FACE_FRONT:
         if (position.z < CHUNK_SIZE_Z - 1) {
@@ -137,9 +144,10 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
                                                          position.z + 1}) ==
                    BLOCK_TYPE_EMPTY;
         } else {
-            return chunk_get_block(neighbors[DIRECTION_FRONT],
+            return !neighbors[DIRECTION_FRONT] ||
+                   chunk_get_block(neighbors[DIRECTION_FRONT],
                                    (struct vec3i){position.x, position.y, 0}) ==
-                   BLOCK_TYPE_EMPTY;
+                       BLOCK_TYPE_EMPTY;
         }
     }
 }
@@ -232,9 +240,9 @@ inline enum block_type chunk_get_block(struct chunk *chunk,
         return BLOCK_TYPE_EMPTY;
     }
 
-    return atomic_load(
-        &chunk->blocks)[position.x + position.y * CHUNK_SIZE_X +
-                        position.z * CHUNK_SIZE_X * CHUNK_SIZE_Y];
+    return atomic_load(atomic_load(&chunk->blocks) + position.x +
+                       position.y * CHUNK_SIZE_X +
+                       position.z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
 }
 
 inline void chunk_set_block(struct chunk *chunk, struct vec3i position,
@@ -243,7 +251,10 @@ inline void chunk_set_block(struct chunk *chunk, struct vec3i position,
         return;
     }
 
-    atomic_load(&chunk->blocks)[position.x + position.y * CHUNK_SIZE_X +
-                                position.z * CHUNK_SIZE_X * CHUNK_SIZE_Y] =
-        type;
+    atomic_store(atomic_load(&chunk->blocks) + position.x +
+                     position.y * CHUNK_SIZE_X +
+                     position.z * CHUNK_SIZE_X * CHUNK_SIZE_Y,
+                 type);
+
+    atomic_store(&chunk->mesh_state, CHUNK_MESH_STATE_NEEDED);
 }

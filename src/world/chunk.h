@@ -36,7 +36,7 @@ enum chunk_mesh_state {
 
 struct chunk {
     atomic_bool visible;
-    _Atomic(enum block_type *) blocks;
+    _Atomic(_Atomic(enum block_type) *) blocks;
     atomic_bool unloaded;
     atomic_int ref_count;
 

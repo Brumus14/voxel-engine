@@ -12,7 +12,8 @@ void vec3d_print(struct vec3d v);
 void vec3i_print(struct vec3i v);
 int sign(double value);
 int mod(int a, int b);
-double random_range(double min, double max);
+int random_int();
+double random_range_double(double min, double max);
 
 static inline double min(double a, double b) {
     return (a < b) ? a : b;

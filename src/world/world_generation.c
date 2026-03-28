@@ -7,10 +7,11 @@ static inline int block_index(int x, int y, int z) {
     return z * CHUNK_SIZE_Y * CHUNK_SIZE_X + y * CHUNK_SIZE_X + x;
 }
 
-enum block_type *world_generation_chunk_terrain(struct vec3i chunk_position,
-                                                float seed) {
-    enum block_type *blocks = malloc(sizeof(enum block_type) * CHUNK_SIZE_X *
-                                     CHUNK_SIZE_Y * CHUNK_SIZE_Z);
+_Atomic(enum block_type) *
+world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {
+    _Atomic(enum block_type) *blocks =
+        malloc(sizeof(_Atomic(enum block_type)) * CHUNK_SIZE_X * CHUNK_SIZE_Y *
+               CHUNK_SIZE_Z);
 
     fnl_state height_noise = fnlCreateState();
     height_noise.noise_type = FNL_NOISE_PERLIN;

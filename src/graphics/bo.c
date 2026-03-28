@@ -77,11 +77,3 @@ void bo_upload(struct bo *bo, unsigned int data_size, void *data,
     GLenum gl_type = to_gl_type(bo->type);
     GL_CALL(glBufferData(gl_type, data_size, data, to_gl_usage(usage)));
 }
-
-int bo_get_size(struct bo *bo) {
-    int size;
-
-    GL_CALL(glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size));
-
-    return size;
-}

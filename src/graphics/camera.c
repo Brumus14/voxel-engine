@@ -49,6 +49,7 @@ void camera_init(struct camera *camera, struct vec3d position,
     camera->position = position;
     camera->rotation = rotation;
     camera->fov = fov;
+    camera->aspect_ratio = aspect_ratio;
     camera->near_plane = near_plane;
     camera->far_plane = far_plane;
 

@@ -58,8 +58,9 @@ void linked_list_insert_end(struct linked_list *list, void *data) {
     list->tail = new_node;
 }
 
-void linked_list_insert(struct linked_list *list, void *data, int index) {
-    int list_length = linked_list_length(list);
+void linked_list_insert(struct linked_list *list, void *data,
+                        unsigned int index) {
+    unsigned int list_length = linked_list_length(list);
 
     if (index > list_length) {
         return;
@@ -77,7 +78,7 @@ void linked_list_insert(struct linked_list *list, void *data, int index) {
 
         struct linked_list_node *node = list->head;
 
-        for (int i = 0; i < index; i++) {
+        for (unsigned int i = 0; i < index; i++) {
             node = node->next;
         }
 
@@ -135,8 +136,8 @@ void *linked_list_remove_end(struct linked_list *list) {
     return removed_data;
 }
 
-void *linked_list_remove(struct linked_list *list, int index) {
-    int list_length = linked_list_length(list);
+void *linked_list_remove(struct linked_list *list, unsigned int index) {
+    unsigned int list_length = linked_list_length(list);
 
     if (index >= list_length) {
         return NULL;
@@ -149,7 +150,7 @@ void *linked_list_remove(struct linked_list *list, int index) {
     } else {
         struct linked_list_node *removed_node = list->head;
 
-        for (int i = 0; i < index; i++) {
+        for (unsigned int i = 0; i < index; i++) {
             removed_node = removed_node->next;
         }
 
@@ -176,14 +177,14 @@ unsigned int linked_list_length(struct linked_list *list) {
     return length;
 }
 
-void *linked_list_get(struct linked_list *list, int index) {
+void *linked_list_get(struct linked_list *list, unsigned int index) {
     if (index >= linked_list_length(list)) {
         return NULL;
     }
 
     struct linked_list_node *current_node = list->head;
 
-    for (int i = 0; i < index; i++) {
+    for (unsigned int i = 0; i < index; i++) {
         current_node = current_node->next;
     }
 

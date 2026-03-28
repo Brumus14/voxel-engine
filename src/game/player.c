@@ -180,7 +180,7 @@ void player_manage_chunks_chunk(void *key, void *value, void *context) {
     if (abs(player_chunk->x - chunk->position.x) > *render_distance ||
         abs(player_chunk->y - chunk->position.y) > *render_distance ||
         abs(player_chunk->z - chunk->position.z) > *render_distance) {
-        world_unload_chunk(world, *chunk_position);
+        // world_unload_chunk(world, *chunk_position);
     }
 }
 
@@ -213,13 +213,9 @@ void player_manage_chunks(struct player *player, struct world *world) {
         for (int y = -chunk_load_distance; y <= chunk_load_distance; y++) {
             for (int x = -chunk_load_distance; x <= chunk_load_distance; x++) {
                 // TODO: Shouldn't modify hashmap when iterating
-                if (pow(x - player_chunk.x, 2) + pow(y - player_chunk.y, 2) +
-                        pow(z - player_chunk.z, 2) <=
-                    pow(chunk_load_distance, 2)) {
-                    world_load_chunk(world, (struct vec3i){player_chunk.x + x,
-                                                           player_chunk.y + y,
-                                                           player_chunk.z + z});
-                }
+                world_load_chunk(world, (struct vec3i){player_chunk.x + x,
+                                                       player_chunk.y + y,
+                                                       player_chunk.z + z});
             }
         }
     }
@@ -342,7 +338,6 @@ void player_set_target_block(struct player *player, struct world *world,
     struct vec3d target_block;
 
     if (player_get_target_block(player, world, &target_block, NULL)) {
-        struct vec3i p = vec3i_from_vec3d_floor(target_block);
         world_set_block(world, type, vec3i_from_vec3d_floor(target_block));
     }
 }
@@ -360,7 +355,7 @@ void player_place_block(struct player *player, struct world *world,
         return;
     }
 
-    if (target_face == -1) {
+    if ((int)target_face == -1) {
         return;
     }
 

@@ -32,6 +32,5 @@ void bo_destroy(struct bo *bo);
 void bo_bind(struct bo *bo);
 void bo_upload(struct bo *bo, unsigned int data_size, void *data,
                enum bo_usage usage);
-int bo_get_size(struct bo *bo);
 
 #endif

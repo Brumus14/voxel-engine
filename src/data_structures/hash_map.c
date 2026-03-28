@@ -48,11 +48,7 @@ void hash_map_destroy(struct hash_map *map) {
     free(map->buckets);
 }
 
-static int c = 0;
-
-#include "../math/math_util.h"
 void *hash_map_put(struct hash_map *map, void *key, void *value) {
-    // printf("%d\n", ++c);
     // Should avoid copying them maybe implement arena allocator
     void *owned_key = malloc(map->key_size);
     memcpy(owned_key, key, map->key_size);

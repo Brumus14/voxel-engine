@@ -13,11 +13,10 @@
 
 struct world {
     struct hash_map chunks;
-    pthread_rwlock_t chunks_lock; // Is this needed
     // Rename to chunks to remove
     struct dynamic_array unloaded_chunks;
     struct tilemap tilemap;
-    float seed;
+    int seed;
     struct thread_pool workers;
 };
 
@@ -28,12 +27,7 @@ void world_unload_chunk(struct world *world, struct vec3i position);
 void world_update(struct world *world);
 void world_draw(struct world *world);
 enum block_type world_get_block(struct world *world, struct vec3i position);
-// enum block_type world_get_block_safe(struct world *world,
-//                                      struct vec3i position); // Is this
-//                                      needed
 void world_set_block(struct world *world, enum block_type type,
                      struct vec3i position);
-// void world_set_block_safe(struct world *world, enum block_type type,
-//                           struct vec3i position);
 
 #endif

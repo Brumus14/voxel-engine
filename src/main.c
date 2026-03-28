@@ -103,13 +103,13 @@ int main() {
             window_capture_cursor(&window);
             player_destroy_block(&player, &world);
         }
-        player_destroy_block(&player, &world);
+        // player_destroy_block(&player, &world);
 
         if (mouse_button_just_down(&window.mouse, MOUSE_BUTTON_RIGHT)) {
             enum block_type current_block =
                 item_type_to_block_type(hotbar_get_current_item(&hotbar));
 
-            if (current_block != -1) {
+            if ((int)current_block != -1) {
                 if (keyboard_key_down(&window.keyboard, KEYCODE_R)) {
                     player_replace_block(&player, &world, current_block);
                 } else {

@@ -9,7 +9,7 @@
 
 struct worker_generate_chunk_terrain_args {
     struct chunk *chunk;
-    float seed;
+    int seed;
 };
 
 struct worker_generate_chunk_mesh_args {

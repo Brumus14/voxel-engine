@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-bool rand_seeded = false;
-
 struct vec3d rotation_to_direction(struct vec3d rotation) {
     struct vec3d direction;
     rotation.y -= 90;
@@ -49,13 +47,22 @@ int mod(int a, int b) {
     return r < 0 ? r + b : r;
 }
 
-double random_range(double min, double max) {
-    // maybe separate this for efficiency?
-    if (!rand_seeded) {
+// Separate random file?
+void random_seed() {
+    static bool seeded = false;
+
+    if (!seeded) {
         srand(time(NULL));
-
-        rand_seeded = true;
+        seeded = true;
     }
+}
 
+int random_int() {
+    random_seed();
+    return rand();
+}
+
+double random_range_double(double min, double max) {
+    random_seed();
     return ((double)rand() / RAND_MAX) * (max - min) + min;
 }

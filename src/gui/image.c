@@ -4,7 +4,7 @@
 
 // create function to set origin
 void gui_image_update(struct gui_image *gui_image) {
-    bo_bind(&gui_image->vbo);
+    vao_bind(&gui_image->vao);
 
     // add option to set image origin which changes vertices
     float z = (float)gui_image->layer * (1.0 / GUI_ELEMENT_LAYER_LAST);
@@ -104,6 +104,7 @@ void gui_image_init(struct gui_image *gui_image, char *image_path,
     bo_init(&gui_image->ibo, BO_TYPE_INDEX);
 
     vao_bind(&gui_image->vao);
+    bo_bind(&gui_image->vbo);
     bo_bind(&gui_image->ibo);
 
     gui_image_update(gui_image);
@@ -135,8 +136,6 @@ void gui_image_draw(struct gui_image *gui_image) {
 
     texture_bind(&gui_image->texture);
     vao_bind(&gui_image->vao);
-    bo_bind(&gui_image->ibo);
-    bo_bind(&gui_image->vbo);
 
     renderer_draw_elements(DRAW_MODE_TRIANGLES, GUI_IMAGE_INDEX_COUNT,
                            INDEX_TYPE_UNSIGNED_INT);

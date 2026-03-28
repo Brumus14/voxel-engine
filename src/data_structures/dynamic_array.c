@@ -36,7 +36,6 @@ void dynamic_array_insert_end(struct dynamic_array *array, const void *data) {
             realloc(array->array, array->capacity * array->value_size);
     }
 
-    // Is memcpy ok here
     memcpy(array->array + (array->element_count - 1) * array->value_size, data,
            array->value_size);
 }
