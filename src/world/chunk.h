@@ -53,6 +53,7 @@ struct chunk {
     struct vao vao;
     struct bo vbo;
     struct bo ibo;
+    unsigned int indices_count;
 };
 
 // clang-format off

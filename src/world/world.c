@@ -300,48 +300,48 @@ void world_set_block(struct world *world, enum block_type type,
     chunk_set_block(chunk, block_chunk_position, type);
 
     // Change to invalid then worker checks if neighbor needs regenerating too
-    // This is very messy
-    // struct vec3i neighbor_position;
-    // struct chunk *neighbor = NULL;
-    //
-    // if (block_chunk_position.x == 0) {
-    //     neighbor_position =
-    //         vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_LEFT]);
-    // } else if (block_chunk_position.x == CHUNK_SIZE_X - 1) {
-    //     neighbor_position =
-    //         vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_RIGHT]);
-    // }
-    //
-    // neighbor = hash_map_get(&world->chunks, &neighbor_position);
-    // if (neighbor) {
-    //     atomic_store(&neighbor->mesh_state, CHUNK_MESH_STATE_NEEDED);
-    // }
-    // neighbor = NULL;
-    //
-    // if (block_chunk_position.y == 0) {
-    //     neighbor_position =
-    //         vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_BOTTOM]);
-    // } else if (block_chunk_position.y == CHUNK_SIZE_Y - 1) {
-    //     neighbor_position =
-    //         vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_TOP]);
-    // }
-    //
-    // neighbor = hash_map_get(&world->chunks, &neighbor_position);
-    // if (neighbor) {
-    //     atomic_store(&neighbor->mesh_state, CHUNK_MESH_STATE_NEEDED);
-    // }
-    // neighbor = NULL;
-    //
-    // if (block_chunk_position.z == 0) {
-    //     neighbor_position =
-    //         vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_BACK]);
-    // } else if (block_chunk_position.z == CHUNK_SIZE_Z - 1) {
-    //     neighbor_position =
-    //         vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_FRONT]);
-    // }
-    //
-    // neighbor = hash_map_get(&world->chunks, &neighbor_position);
-    // if (neighbor) {
-    //     atomic_store(&neighbor->mesh_state, CHUNK_MESH_STATE_NEEDED);
-    // }
+    // TODO: This is very messy
+    struct vec3i neighbor_position;
+    struct chunk *neighbor = NULL;
+
+    if (block_chunk_position.x == 0) {
+        neighbor_position =
+            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_LEFT]);
+    } else if (block_chunk_position.x == CHUNK_SIZE_X - 1) {
+        neighbor_position =
+            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_RIGHT]);
+    }
+
+    neighbor = hash_map_get(&world->chunks, &neighbor_position);
+    if (neighbor) {
+        atomic_store(&neighbor->mesh_state, CHUNK_MESH_STATE_NEEDED);
+    }
+    neighbor = NULL;
+
+    if (block_chunk_position.y == 0) {
+        neighbor_position =
+            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_BOTTOM]);
+    } else if (block_chunk_position.y == CHUNK_SIZE_Y - 1) {
+        neighbor_position =
+            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_TOP]);
+    }
+
+    neighbor = hash_map_get(&world->chunks, &neighbor_position);
+    if (neighbor) {
+        atomic_store(&neighbor->mesh_state, CHUNK_MESH_STATE_NEEDED);
+    }
+    neighbor = NULL;
+
+    if (block_chunk_position.z == 0) {
+        neighbor_position =
+            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_BACK]);
+    } else if (block_chunk_position.z == CHUNK_SIZE_Z - 1) {
+        neighbor_position =
+            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_FRONT]);
+    }
+
+    neighbor = hash_map_get(&world->chunks, &neighbor_position);
+    if (neighbor) {
+        atomic_store(&neighbor->mesh_state, CHUNK_MESH_STATE_NEEDED);
+    }
 }

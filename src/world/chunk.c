@@ -39,6 +39,8 @@ void chunk_init(struct chunk *chunk, struct vec3i position,
                CHUNK_VERTEX_SIZE * sizeof(float), (void *)(3 * sizeof(float)));
     vao_attrib(&chunk->vao, 2, 3, VAO_TYPE_FLOAT, false,
                CHUNK_VERTEX_SIZE * sizeof(float), (void *)(5 * sizeof(float)));
+
+    chunk->indices_count = 0;
 }
 
 void chunk_destroy(struct chunk *chunk) {
@@ -63,6 +65,8 @@ void chunk_update_buffers(struct chunk *chunk) {
               BO_USAGE_STATIC_DRAW);
     bo_upload(&chunk->ibo, ibo_size, chunk->indices.array,
               BO_USAGE_STATIC_DRAW);
+
+    chunk->indices_count = chunk->indices.element_count;
 }
 
 void chunk_draw(struct chunk *chunk) {
@@ -73,7 +77,7 @@ void chunk_draw(struct chunk *chunk) {
     tilemap_bind(chunk->tilemap);
     vao_bind(&chunk->vao);
 
-    renderer_draw_elements(DRAW_MODE_TRIANGLES, chunk->indices.element_count,
+    renderer_draw_elements(DRAW_MODE_TRIANGLES, chunk->indices_count,
                            INDEX_TYPE_UNSIGNED_INT);
 }
 
