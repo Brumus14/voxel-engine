@@ -10,7 +10,7 @@
 #include "../util/stopwatch.h"
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                struct tilemap *tilemap) {
+                enum chunk_type type, struct tilemap *tilemap) {
     atomic_init(&chunk->visible, false);
     atomic_init(&chunk->blocks, NULL);
     atomic_init(&chunk->unloaded, false);
@@ -21,6 +21,7 @@ void chunk_init(struct chunk *chunk, struct vec3i position,
     atomic_init(&chunk->buffers_stale, false);
 
     chunk->position = position;
+    chunk->type = type;
     chunk->tilemap = tilemap;
     dynamic_array_init(&chunk->vertices, sizeof(float));
     dynamic_array_init(&chunk->indices, sizeof(unsigned int));

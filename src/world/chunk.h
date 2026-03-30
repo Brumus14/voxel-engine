@@ -34,6 +34,11 @@ enum chunk_mesh_state {
     CHUNK_MESH_STATE_GENERATED,
 };
 
+enum chunk_type {
+    CHUNK_TYPE_FULL,
+    CHUNK_TYPE_TERRAIN,
+};
+
 struct chunk {
     atomic_bool visible;
     _Atomic(_Atomic(enum block_type) *) blocks;
@@ -45,6 +50,7 @@ struct chunk {
     atomic_bool buffers_stale;
 
     struct vec3i position;
+    enum chunk_type type;
     struct tilemap *tilemap;
     struct dynamic_array vertices;
     struct dynamic_array indices;
@@ -109,7 +115,7 @@ static const struct vec3i NEIGHBOR_OFFSETS[6] = {
 // clang-format on
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                struct tilemap *tilemap);
+                enum chunk_type type, struct tilemap *tilemap);
 void chunk_destroy(struct chunk *chunk);
 void chunk_update_buffers(struct chunk *chunk);
 void chunk_draw(struct chunk *chunk);

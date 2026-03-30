@@ -13,7 +13,7 @@
 #include "block.h"
 #include "worker.h"
 #include "../util/direction.h"
-#include "../util/logging.h"
+#include "../util/log.h"
 
 // Hash function from:
 // https://matthias-research.github.io/pages/publications/tetraederCollision.pdf
@@ -55,14 +55,18 @@ void world_destroy(struct world *world) {
     hash_map_destroy(&world->chunks);
 }
 
-void world_load_chunk(struct world *world, struct vec3i position) {
+void world_load_chunk(struct world *world, struct vec3i position,
+                      enum chunk_type type) {
     // Check not already loaded
-    if (hash_map_get(&world->chunks, &position)) {
+    struct chunk *chunk = hash_map_get(&world->chunks, &position);
+
+    if (chunk) {
+        chunk->type = type;
         return;
     }
 
     struct chunk *new_chunk = malloc(sizeof(struct chunk));
-    chunk_init(new_chunk, position, &world->tilemap);
+    chunk_init(new_chunk, position, type, &world->tilemap);
 
     hash_map_put(&world->chunks, &new_chunk->position, new_chunk);
 
@@ -86,16 +90,13 @@ void world_unload_chunk(struct world *world, struct vec3i position) {
         return;
     }
 
-    // atomic_store(&chunk->unloaded, true);
-
     WORLD_LOG({
-        printf("unloading ");
+        printf("Unloading ");
         vec3i_print(position);
         putchar('\n');
     });
 
-    // Can i add to array immediately
-    // dynamic_array_insert_end(&world->unloaded_chunks, &position);
+    atomic_store(&chunk->unloaded, true);
 }
 
 bool get_chunk_neighbors(struct world *world, struct vec3i position,
@@ -112,6 +113,7 @@ bool get_chunk_neighbors(struct world *world, struct vec3i position,
 
         if (atomic_load(&neighbors[i]->unloaded)) {
             neighbors[i] = NULL;
+            continue;
         }
 
         if (atomic_load(&neighbors[i]->blocks_state) !=
@@ -168,7 +170,8 @@ void world_update_chunk(void *key, void *value, void *arg) {
         });
     }
 
-    if (atomic_load(&chunk->blocks_state) == CHUNK_BLOCKS_STATE_GENERATED) {
+    if (chunk->type == CHUNK_TYPE_FULL &&
+        atomic_load(&chunk->blocks_state) == CHUNK_BLOCKS_STATE_GENERATED) {
         expected_mesh_state = CHUNK_MESH_STATE_UNGENERATED;
         atomic_compare_exchange_strong(&chunk->mesh_state, &expected_mesh_state,
                                        CHUNK_MESH_STATE_NEEDED);
@@ -233,9 +236,8 @@ void world_update(struct world *world) {
         struct vec3i *position = dynamic_array_get(&world->unloaded_chunks, i);
         struct chunk *chunk = hash_map_remove(&world->chunks, position);
 
-        // Someone else is referencing it as a neighbor
         WORLD_LOG({
-            printf("unloaded ");
+            printf("Unloaded ");
             vec3i_print(chunk->position);
             putchar('\n');
         });

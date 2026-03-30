@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "../util/logging.h"
+#include "../util/log.h"
 
 void *thread_pool_thread_main(void *arg) {
     struct thread_pool *pool = (struct thread_pool *)arg;

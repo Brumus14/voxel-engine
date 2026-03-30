@@ -1,30 +1,14 @@
-chunk states were originally all good to then generate mesh, then when it came to actually being generated one went back to needing terrain
-chunks are queued to unload and unload while a chunk has just been queued to mesh, so the neighbor will go backwards kind of
-handle border chunks better
-chunk was queued to mesh so all chunks at least have terrain, then when meshing a neighbor didnt have terrain, it wasn't unloaded
-removing unloading resolves issue
-
-
-5 -10 -12 - seg fault accessing block
-5 -9 -2 - chunk generating mesh for
-
-neighbors:
-4, -9, -2 - gen mesh
-5, -10, -12 - need terr
-5, -10, -2 - need mesh
-5, -8, -2 - ready
-5, -9, -3 - gen mesh
-5, -9, -1 - gen mesh
-
-6, -9, -2 - was being unloaded at 625743, it never got unloaded
-5, -10, -12 - added at 635523
-
-
+When two workers simultaneously generating mesh, both modify vertices and indices
+With large chunk size loading new chunks still lags
+Chunking is bottleneck not rendering
+Support block transparency, e.g. leaves
+Improve world generation, and add trees
+Save chunk modifications when reloading a chunk
+Save files
 Use const void *
 Order structs for padding and caching
-Ref counting glitches i think
 Moving fast loads tons of chunks that take ages to unload
-Stop polling for chunk changes like MESH_NEEDED
+Maybe stop polling for chunk changes like MESH_NEEDED
 Load chunks as circle not rectangle around player
 Renduce looping in main, such as loading chunks in player
 Check all init functions have a correct destroy
@@ -37,7 +21,6 @@ Unloaded chunks not freed well
 Maybe optimise thread pool queue for SPMC
 Some chunk borders dont mesh when they should - Could be due to chunks on edge of render distance since neighbors dont exist
 Workers can cancel tasks if chunk is being unloaded
-    Don't mesh blocks on chunk borders so wait for bordering chunks to generate terrain
 Check for any race conditions / multithreading bugs (potentially to do with chunk iteration)
 Improve meshing like greedy meshing
 Sometimes get invalid frees probably due to multithreading issues
@@ -55,6 +38,6 @@ Maybe rework chunk iteration as lots of argument parsing, maybe just access inte
 Maybe rework worker as lots of argument parsing
 Chunk occlusion culling
 I think rendering is like blocked especially noticable when initially generating lots of chunks
-Break out of worker tasks early by checking unloaded flag
+    Break out of worker tasks early by checking unloaded flag
 Pass by reference more
 Only load chunks on player movement

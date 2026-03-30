@@ -7,6 +7,7 @@ static inline int block_index(int x, int y, int z) {
     return z * CHUNK_SIZE_Y * CHUNK_SIZE_X + y * CHUNK_SIZE_X + x;
 }
 
+// TODO: This is very messy
 _Atomic(enum block_type) *
 world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {
     _Atomic(enum block_type) *blocks =

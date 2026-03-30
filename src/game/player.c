@@ -177,10 +177,12 @@ void player_manage_chunks_chunk(void *key, void *value, void *context) {
     //     return;
     // }
 
-    if (abs(player_chunk->x - chunk->position.x) > *render_distance ||
-        abs(player_chunk->y - chunk->position.y) > *render_distance ||
-        abs(player_chunk->z - chunk->position.z) > *render_distance) {
-        // world_unload_chunk(world, *chunk_position);
+    int chunk_load_distance = *render_distance + 1;
+
+    if (abs(player_chunk->x - chunk->position.x) > chunk_load_distance ||
+        abs(player_chunk->y - chunk->position.y) > chunk_load_distance ||
+        abs(player_chunk->z - chunk->position.z) > chunk_load_distance) {
+        world_unload_chunk(world, *chunk_position);
     }
 }
 
@@ -206,16 +208,25 @@ void player_manage_chunks(struct player *player, struct world *world) {
     hash_map_for_each(&world->chunks, player_manage_chunks_chunk, &context);
 
     // Move this somewhere better
-    // int chunk_load_distance = render_distance + 1;
-    int chunk_load_distance = render_distance;
+    int chunk_load_distance = render_distance + 1;
 
     for (int z = -chunk_load_distance; z <= chunk_load_distance; z++) {
         for (int y = -chunk_load_distance; y <= chunk_load_distance; y++) {
             for (int x = -chunk_load_distance; x <= chunk_load_distance; x++) {
+                enum chunk_type type = CHUNK_TYPE_FULL;
+
+                if (abs(x) == chunk_load_distance ||
+                    abs(y) == chunk_load_distance ||
+                    abs(z) == chunk_load_distance) {
+                    type = CHUNK_TYPE_TERRAIN;
+                }
+
                 // TODO: Shouldn't modify hashmap when iterating
-                world_load_chunk(world, (struct vec3i){player_chunk.x + x,
-                                                       player_chunk.y + y,
-                                                       player_chunk.z + z});
+                world_load_chunk(world,
+                                 (struct vec3i){player_chunk.x + x,
+                                                player_chunk.y + y,
+                                                player_chunk.z + z},
+                                 type);
             }
         }
     }

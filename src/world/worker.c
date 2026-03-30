@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include "../util/logging.h"
+#include "../util/log.h"
 #include "../math/math_util.h"
 
 // TODO: Check if the struct chunk has been unloaded if so then cancel
