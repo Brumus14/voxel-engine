@@ -59,6 +59,9 @@ void *worker_generate_chunk_mesh(void *arg) {
         return NULL;
     }
 
+    WORLD_LOG(printf("Generating mesh for %d, %d, %d\n", chunk->position.x,
+                     chunk->position.y, chunk->position.z))
+
     atomic_store(&chunk->mesh_state, CHUNK_MESH_STATE_GENERATING);
 
     chunk_generate_mesh(chunk, neighbors);

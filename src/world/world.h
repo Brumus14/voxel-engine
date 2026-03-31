@@ -22,8 +22,7 @@ struct world {
 
 void world_init(struct world *world);
 void world_destroy(struct world *world);
-void world_load_chunk(struct world *world, struct vec3i position,
-                      enum chunk_type type);
+void world_load_chunk(struct world *world, struct vec3i position);
 void world_unload_chunk(struct world *world, struct vec3i position);
 void world_update(struct world *world);
 void world_draw(struct world *world);

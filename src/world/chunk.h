@@ -35,7 +35,7 @@ enum chunk_mesh_state {
 };
 
 enum chunk_type {
-    CHUNK_TYPE_FULL,
+    CHUNK_TYPE_FULL = 0,
     CHUNK_TYPE_TERRAIN,
 };
 

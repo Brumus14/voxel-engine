@@ -55,13 +55,16 @@ void world_destroy(struct world *world) {
     hash_map_destroy(&world->chunks);
 }
 
-void world_load_chunk(struct world *world, struct vec3i position,
-                      enum chunk_type type) {
+void load_chunk(struct world *world, struct vec3i position,
+                enum chunk_type type) {
     // Check not already loaded
     struct chunk *chunk = hash_map_get(&world->chunks, &position);
 
     if (chunk) {
-        chunk->type = type;
+        if (chunk->type > type) {
+            chunk->type = type;
+        }
+
         return;
     }
 
@@ -70,13 +73,26 @@ void world_load_chunk(struct world *world, struct vec3i position,
 
     hash_map_put(&world->chunks, &new_chunk->position, new_chunk);
 
-    WORLD_LOG({
-        printf("Loaded ");
-        vec3i_print(position);
-        putchar('\n');
-    });
+    if (type == CHUNK_TYPE_FULL) {
+        WORLD_LOG({
+            printf("Loaded ");
+            vec3i_print(position);
+            putchar('\n');
+        });
+    }
 
     atomic_store(&new_chunk->blocks_state, CHUNK_BLOCKS_STATE_NEEDED);
+}
+
+void world_load_chunk(struct world *world, struct vec3i position) {
+    load_chunk(world, position, CHUNK_TYPE_FULL);
+
+    for (int i = 0; i < 6; i++) {
+        struct vec3i neighbor_position =
+            vec3i_add(position, NEIGHBOR_OFFSETS[i]);
+
+        load_chunk(world, neighbor_position, CHUNK_TYPE_TERRAIN);
+    }
 }
 
 // remove chunks from chunks to generate if have moved out of render distance
@@ -108,7 +124,8 @@ bool get_chunk_neighbors(struct world *world, struct vec3i position,
         neighbors[i] = hash_map_get(&world->chunks, &neighbor_position);
 
         if (!neighbors[i]) {
-            continue;
+            // This shouldn't be reachable
+            return false;
         }
 
         if (atomic_load(&neighbors[i]->unloaded)) {

@@ -208,25 +208,19 @@ void player_manage_chunks(struct player *player, struct world *world) {
     hash_map_for_each(&world->chunks, player_manage_chunks_chunk, &context);
 
     // Move this somewhere better
-    int chunk_load_distance = render_distance + 1;
 
-    for (int z = -chunk_load_distance; z <= chunk_load_distance; z++) {
-        for (int y = -chunk_load_distance; y <= chunk_load_distance; y++) {
-            for (int x = -chunk_load_distance; x <= chunk_load_distance; x++) {
-                enum chunk_type type = CHUNK_TYPE_FULL;
+    for (int z = -render_distance; z <= render_distance; z++) {
+        for (int y = -render_distance; y <= render_distance; y++) {
+            for (int x = -render_distance; x <= render_distance; x++) {
+                // Sphere chunk loading
+                // if (sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)) >
+                //     render_distance) {
+                //     continue;
+                // }
 
-                if (abs(x) == chunk_load_distance ||
-                    abs(y) == chunk_load_distance ||
-                    abs(z) == chunk_load_distance) {
-                    type = CHUNK_TYPE_TERRAIN;
-                }
-
-                // TODO: Shouldn't modify hashmap when iterating
-                world_load_chunk(world,
-                                 (struct vec3i){player_chunk.x + x,
-                                                player_chunk.y + y,
-                                                player_chunk.z + z},
-                                 type);
+                world_load_chunk(world, (struct vec3i){player_chunk.x + x,
+                                                       player_chunk.y + y,
+                                                       player_chunk.z + z});
             }
         }
     }

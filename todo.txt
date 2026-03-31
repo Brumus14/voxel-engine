@@ -1,4 +1,6 @@
-When two workers simultaneously generating mesh, both modify vertices and indices
+Unloading chunks unloads terrain only chunks aswell
+Closing window doesn't clean up memory properly
+*When two workers simultaneously generating mesh, both modify vertices and indices
 With large chunk size loading new chunks still lags
 Chunking is bottleneck not rendering
 Support block transparency, e.g. leaves
@@ -10,20 +12,13 @@ Order structs for padding and caching
 Moving fast loads tons of chunks that take ages to unload
 Maybe stop polling for chunk changes like MESH_NEEDED
 Load chunks as circle not rectangle around player
-Renduce looping in main, such as loading chunks in player
-Check all init functions have a correct destroy
+Reduce looping in main, such as loading chunks in player
 Add get functions to renderer
-Regenerate border chunks when loading new chunks, or have border of terrain generated hidden chunks to correctly generate border visible chunks
 Move keyboard bindings from main
-Chunk get block - accesses block data which may be being modified
-Bulk allocate initial chunk memory?
-Unloaded chunks not freed well
 Maybe optimise thread pool queue for SPMC
-Some chunk borders dont mesh when they should - Could be due to chunks on edge of render distance since neighbors dont exist
 Workers can cancel tasks if chunk is being unloaded
 Check for any race conditions / multithreading bugs (potentially to do with chunk iteration)
 Improve meshing like greedy meshing
-Sometimes get invalid frees probably due to multithreading issues
 Reimplement collision
 Gravity
 Make flying more responsive
