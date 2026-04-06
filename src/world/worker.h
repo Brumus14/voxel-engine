@@ -4,9 +4,6 @@
 #include "chunk.h"
 #include "world.h"
 
-#include "../util/thread_pool.h"
-#include "../data_structures/hash_map.h"
-
 struct worker_generate_chunk_terrain_args {
     struct chunk *chunk;
     int seed;

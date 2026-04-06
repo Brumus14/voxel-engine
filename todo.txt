@@ -1,3 +1,4 @@
+Worker task priorities (using thread pool priority queue with a heap)
 Unloading chunks unloads terrain only chunks aswell
 Closing window doesn't clean up memory properly
 *When two workers simultaneously generating mesh, both modify vertices and indices

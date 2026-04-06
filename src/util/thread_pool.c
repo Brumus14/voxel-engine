@@ -1,7 +1,6 @@
 #include "thread_pool.h"
 
 #include "../data_structures/queue.h"
-#include "../data_structures/safe_queue.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,12 +24,10 @@ void *thread_pool_thread_main(void *arg) {
         struct thread_pool_task *task = queue_dequeue(tasks);
         pthread_mutex_unlock(tasks_lock);
 
-        // if (task) {
         // Execute the task
         task->function(task->argument);
-        // free(task->argument);
+        free(task->argument);
         free(task);
-        // }
     }
 
     return NULL;
@@ -58,6 +55,15 @@ void thread_pool_destroy(struct thread_pool *pool) {
 
     pthread_cond_destroy(&pool->task_available);
     pthread_mutex_destroy(&pool->tasks_lock);
+
+    struct thread_pool_task *task = queue_dequeue(&pool->tasks);
+
+    while (task) {
+        free(task->argument);
+        free(task);
+        task = queue_dequeue(&pool->tasks);
+    }
+
     queue_destroy(&pool->tasks);
 }
 

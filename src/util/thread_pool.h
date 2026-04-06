@@ -9,7 +9,7 @@ typedef void *(*thread_pool_task_function)(void *);
 
 struct thread_pool_task {
     thread_pool_task_function function;
-    void *argument;
+    void *argument; // Heap allocated, assumes argument is all on stack
 };
 
 struct thread_pool {

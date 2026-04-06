@@ -1,13 +1,11 @@
-#include "data_structures/dynamic_array.h"
+#include "data_structures/priority_queue.h"
 #include "glad/glad.h"
-#include "GLFW/glfw3.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "graphics/camera.h"
 #include "graphics/window.h"
 #include "input/keyboard.h"
-#include "math/vec3/vec3_convert.h"
 #include "world/block.h"
 #include "game/player.h"
 #include "world/world.h"
@@ -21,6 +19,19 @@
 // make arguments const
 
 int main() {
+    struct priority_queue q;
+    priority_queue_init(&q);
+    priority_queue_push(&q, NULL, 5);
+    priority_queue_push(&q, NULL, 4);
+    priority_queue_push(&q, NULL, 3);
+    priority_queue_push(&q, NULL, 8);
+    priority_queue_push(&q, NULL, 4.5);
+    priority_queue_push(&q, NULL, 2);
+
+    for (int i = 0; i < q.element_count; i++) {
+        printf("%f\n", q.array[i].priority);
+    }
+
     struct window window;
     struct camera camera;
 

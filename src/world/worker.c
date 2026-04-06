@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include "../util/log.h"
 #include "../math/math_util.h"
+#include "../util/stopwatch.h"
 
 // TODO: Check if the struct chunk has been unloaded if so then cancel
 // Doesn't free arg
@@ -17,7 +18,6 @@ void *worker_generate_chunk_terrain(void *arg) {
     int seed = args->seed;
 
     if (atomic_load(&chunk->unloaded)) {
-        free(arg);
         atomic_fetch_sub(&chunk->ref_count, 1);
         return NULL;
     }
@@ -36,7 +36,6 @@ void *worker_generate_chunk_terrain(void *arg) {
 
     atomic_store(&chunk->blocks_state, CHUNK_BLOCKS_STATE_GENERATED);
 
-    free(arg);
     atomic_fetch_sub(&chunk->ref_count, 1);
     return NULL;
 }
@@ -54,7 +53,6 @@ void *worker_generate_chunk_mesh(void *arg) {
             }
         }
 
-        free(arg);
         atomic_fetch_sub(&chunk->ref_count, 1);
         return NULL;
     }
@@ -78,7 +76,6 @@ void *worker_generate_chunk_mesh(void *arg) {
         }
     }
 
-    free(arg);
     atomic_fetch_sub(&chunk->ref_count, 1);
     return NULL;
 }
