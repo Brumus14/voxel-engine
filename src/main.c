@@ -19,19 +19,6 @@
 // make arguments const
 
 int main() {
-    struct priority_queue q;
-    priority_queue_init(&q);
-    priority_queue_push(&q, NULL, 5);
-    priority_queue_push(&q, NULL, 4);
-    priority_queue_push(&q, NULL, 3);
-    priority_queue_push(&q, NULL, 8);
-    priority_queue_push(&q, NULL, 4.5);
-    priority_queue_push(&q, NULL, 2);
-
-    for (int i = 0; i < q.element_count; i++) {
-        printf("%f\n", q.array[i].priority);
-    }
-
     struct window window;
     struct camera camera;
 
@@ -69,7 +56,7 @@ int main() {
     // 21474836.0
     // 2147483.0
     struct player player;
-    player_init(&player, (struct vec3d){8.0, 4.0, 8.0}, VEC3D_ZERO, 0.05,
+    player_init(&player, (struct vec3d){8.0, 24.0, 8.0}, VEC3D_ZERO, 0.05,
                 &camera);
 
     while (!window_should_close(&window)) {
@@ -201,7 +188,7 @@ int main() {
 
         camera_prepare_draw(&camera);
 
-        world_update(&world);
+        world_update(&world, player.position);
         world_draw(&world); // SLOW
 
         renderer_clear_depth_buffer();

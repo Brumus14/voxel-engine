@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include <math.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -56,13 +57,17 @@ void world_destroy(struct world *world) {
 }
 
 void load_chunk(struct world *world, struct vec3i position,
-                enum chunk_type type) {
+                enum chunk_type type, bool neighbor_load) {
     // Check not already loaded
     struct chunk *chunk = hash_map_get(&world->chunks, &position);
 
     if (chunk) {
         if (chunk->type > type) {
             chunk->type = type;
+
+            if (neighbor_load) {
+                chunk->neighbor_load_count++;
+            }
         }
 
         return;
@@ -70,6 +75,10 @@ void load_chunk(struct world *world, struct vec3i position,
 
     struct chunk *new_chunk = malloc(sizeof(struct chunk));
     chunk_init(new_chunk, position, type, &world->tilemap);
+
+    if (neighbor_load) {
+        new_chunk->neighbor_load_count++;
+    }
 
     hash_map_put(&world->chunks, &new_chunk->position, new_chunk);
 
@@ -85,13 +94,13 @@ void load_chunk(struct world *world, struct vec3i position,
 }
 
 void world_load_chunk(struct world *world, struct vec3i position) {
-    load_chunk(world, position, CHUNK_TYPE_FULL);
+    load_chunk(world, position, CHUNK_TYPE_FULL, false);
 
     for (int i = 0; i < 6; i++) {
         struct vec3i neighbor_position =
             vec3i_add(position, NEIGHBOR_OFFSETS[i]);
 
-        load_chunk(world, neighbor_position, CHUNK_TYPE_TERRAIN);
+        load_chunk(world, neighbor_position, CHUNK_TYPE_TERRAIN, true);
     }
 }
 
@@ -102,7 +111,7 @@ void world_unload_chunk(struct world *world, struct vec3i position) {
     // struct chunk *chunk = hash_map_remove(&world->chunks, &position);
     struct chunk *chunk = hash_map_get(&world->chunks, &position);
 
-    if (!chunk) {
+    if (!chunk || chunk->type != CHUNK_TYPE_FULL) {
         return;
     }
 
@@ -113,6 +122,25 @@ void world_unload_chunk(struct world *world, struct vec3i position) {
     });
 
     atomic_store(&chunk->unloaded, true);
+
+    for (int i = 0; i < 6; i++) {
+        struct vec3i neighbor_position =
+            vec3i_add(position, NEIGHBOR_OFFSETS[i]);
+
+        struct chunk *neighbor =
+            hash_map_get(&world->chunks, &neighbor_position);
+
+        if (!neighbor) {
+            continue;
+        }
+
+        neighbor->neighbor_load_count--;
+
+        if (neighbor->type == CHUNK_TYPE_TERRAIN &&
+            neighbor->neighbor_load_count == 0) {
+            atomic_store(&chunk->unloaded, true);
+        }
+    }
 }
 
 bool get_chunk_neighbors(struct world *world, struct vec3i position,
@@ -145,6 +173,7 @@ bool get_chunk_neighbors(struct world *world, struct vec3i position,
 struct world_update_chunk_args {
     struct world *world;
     struct thread_pool *workers;
+    struct vec3d player_position;
 };
 
 void world_update_chunk(void *key, void *value, void *arg) {
@@ -154,6 +183,7 @@ void world_update_chunk(void *key, void *value, void *arg) {
     struct world_update_chunk_args *args = arg;
     struct world *world = args->world;
     struct thread_pool *workers = args->workers;
+    struct vec3d player_position = args->player_position;
 
     if (atomic_load(&chunk->unloaded)) {
         if (atomic_load(&chunk->ref_count) == 0) {
@@ -162,6 +192,11 @@ void world_update_chunk(void *key, void *value, void *arg) {
 
         return;
     }
+
+    // Maybe move this inside chunk
+    struct vec3i chunk_position_block = vec3i_dot_product(
+        chunk->position,
+        (struct vec3i){CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z});
 
     enum chunk_blocks_state expected_blocks_state;
     enum chunk_mesh_state expected_mesh_state;
@@ -177,8 +212,12 @@ void world_update_chunk(void *key, void *value, void *arg) {
         args->seed = world->seed;
 
         atomic_fetch_add(&chunk->ref_count, 1);
+        float priority =
+            sqrtf(pow(chunk_position_block.x - player_position.x, 2) +
+                  pow(chunk_position_block.y - player_position.y, 2) +
+                  pow(chunk_position_block.z - player_position.z, 2));
         thread_pool_schedule(&world->workers, worker_generate_chunk_terrain,
-                             args);
+                             args, priority);
 
         WORLD_LOG({
             printf("Queued terrain ");
@@ -219,7 +258,12 @@ void world_update_chunk(void *key, void *value, void *arg) {
             }
 
             atomic_fetch_add(&chunk->ref_count, 1);
-            thread_pool_schedule(workers, worker_generate_chunk_mesh, args);
+            float priority =
+                sqrtf(pow(chunk_position_block.x - player_position.x, 2) +
+                      pow(chunk_position_block.y - player_position.y, 2) +
+                      pow(chunk_position_block.z - player_position.z, 2));
+            thread_pool_schedule(workers, worker_generate_chunk_mesh, args,
+                                 priority);
 
             WORLD_LOG({
                 printf("Queued mesh ");
@@ -235,18 +279,17 @@ void world_update_chunk(void *key, void *value, void *arg) {
                                        &expected_buffers_stale, false)) {
         chunk_update_buffers(chunk);
 
-        bool expected_visible = false;
-        atomic_compare_exchange_strong(&chunk->visible, &expected_visible,
-                                       true);
+        chunk->visible = true;
     }
 }
 
 // Merge update and draw so not multiple iterations
 // It seems really inefficient to iterate over all chunks?
-void world_update(struct world *world) {
+void world_update(struct world *world, struct vec3d player_position) {
     dynamic_array_clear(&world->unloaded_chunks);
 
-    struct world_update_chunk_args args = {world, &world->workers};
+    struct world_update_chunk_args args = {world, &world->workers,
+                                           player_position};
     hash_map_for_each(&world->chunks, world_update_chunk, &args);
 
     for (unsigned long i = 0; i < world->unloaded_chunks.element_count; i++) {

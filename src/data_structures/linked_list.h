@@ -14,7 +14,7 @@ void linked_list_node_init(struct linked_list_node *node, void *data);
 struct linked_list {
     struct linked_list_node *head;
     struct linked_list_node *tail;
-    unsigned long data_size;
+    unsigned long data_size; // Remove and don't use memcmp
 };
 
 void linked_list_init(struct linked_list *list, unsigned long data_size);

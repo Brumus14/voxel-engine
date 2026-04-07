@@ -40,7 +40,7 @@ enum chunk_type {
 };
 
 struct chunk {
-    atomic_bool visible;
+    bool visible;
     _Atomic(_Atomic(enum block_type) *) blocks;
     atomic_bool unloaded;
     atomic_int ref_count;
@@ -51,6 +51,7 @@ struct chunk {
 
     struct vec3i position;
     enum chunk_type type;
+    int neighbor_load_count;
     struct tilemap *tilemap;
     struct dynamic_array vertices;
     struct dynamic_array indices;

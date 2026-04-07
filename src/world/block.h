@@ -21,7 +21,6 @@ enum block_face {
     BLOCK_FACE_FRONT,
 };
 
-// rename to texture indexes?
 struct block_texture {
     int face_texture_indices[6]; // front, top, right, bottom, left, back
 };

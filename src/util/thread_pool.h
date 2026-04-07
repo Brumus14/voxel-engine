@@ -1,7 +1,7 @@
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
 
-#include "../data_structures/queue.h"
+#include "../data_structures/priority_queue.h"
 #include <pthread.h>
 #include <unistd.h>
 
@@ -15,7 +15,7 @@ struct thread_pool_task {
 struct thread_pool {
     unsigned int thread_count;
     pthread_t *threads;
-    struct queue tasks;
+    struct priority_queue tasks;
     pthread_mutex_t tasks_lock;
     pthread_cond_t task_available;
 };
@@ -23,7 +23,9 @@ struct thread_pool {
 void *thread_pool_task_main(void *arg);
 void thread_pool_init(struct thread_pool *pool, unsigned int count);
 void thread_pool_destroy(struct thread_pool *pool);
+// Low is higher priority
 void thread_pool_schedule(struct thread_pool *pool,
-                          thread_pool_task_function function, void *argument);
+                          thread_pool_task_function function, void *argument,
+                          float priority);
 
 #endif

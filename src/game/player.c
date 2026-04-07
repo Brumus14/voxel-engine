@@ -177,11 +177,9 @@ void player_manage_chunks_chunk(void *key, void *value, void *context) {
     //     return;
     // }
 
-    int chunk_load_distance = *render_distance + 1;
-
-    if (abs(player_chunk->x - chunk->position.x) > chunk_load_distance ||
-        abs(player_chunk->y - chunk->position.y) > chunk_load_distance ||
-        abs(player_chunk->z - chunk->position.z) > chunk_load_distance) {
+    if (abs(player_chunk->x - chunk->position.x) > *render_distance ||
+        abs(player_chunk->y - chunk->position.y) > *render_distance ||
+        abs(player_chunk->z - chunk->position.z) > *render_distance) {
         world_unload_chunk(world, *chunk_position);
     }
 }
@@ -191,7 +189,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 6; // move to a variable
+    int render_distance = 8; // move to a variable
     struct vec3i player_chunk = {
         floor(player->position.x / CHUNK_SIZE_X),
         floor(player->position.y / CHUNK_SIZE_Y),
@@ -228,6 +226,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
 
 // if pointers are null
 // Shouldnt this return the block type
+// Create raycast function
 bool player_get_target_block(struct player *player, struct world *world,
                              struct vec3d *position_dest,
                              enum block_face *face) {

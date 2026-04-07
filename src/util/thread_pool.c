@@ -9,7 +9,7 @@
 
 void *thread_pool_thread_main(void *arg) {
     struct thread_pool *pool = (struct thread_pool *)arg;
-    struct queue *tasks = &pool->tasks;
+    struct priority_queue *tasks = &pool->tasks;
     pthread_mutex_t *tasks_lock = &pool->tasks_lock;
     pthread_cond_t *task_available = &pool->task_available;
 
@@ -17,11 +17,11 @@ void *thread_pool_thread_main(void *arg) {
     while (true) {
         pthread_mutex_lock(tasks_lock);
 
-        while (queue_is_empty(tasks)) {
+        while (priority_queue_is_empty(tasks)) {
             pthread_cond_wait(task_available, tasks_lock);
         }
 
-        struct thread_pool_task *task = queue_dequeue(tasks);
+        struct thread_pool_task *task = priority_queue_pop(tasks);
         pthread_mutex_unlock(tasks_lock);
 
         // Execute the task
@@ -35,7 +35,7 @@ void *thread_pool_thread_main(void *arg) {
 
 void thread_pool_init(struct thread_pool *pool, unsigned int count) {
     pool->thread_count = count;
-    queue_init(&pool->tasks, sizeof(struct thread_pool_task));
+    priority_queue_init(&pool->tasks);
     pthread_mutex_init(&pool->tasks_lock, NULL);
     pthread_cond_init(&pool->task_available, NULL);
 
@@ -56,26 +56,27 @@ void thread_pool_destroy(struct thread_pool *pool) {
     pthread_cond_destroy(&pool->task_available);
     pthread_mutex_destroy(&pool->tasks_lock);
 
-    struct thread_pool_task *task = queue_dequeue(&pool->tasks);
+    struct thread_pool_task *task = priority_queue_pop(&pool->tasks);
 
     while (task) {
         free(task->argument);
         free(task);
-        task = queue_dequeue(&pool->tasks);
+        task = priority_queue_pop(&pool->tasks);
     }
 
-    queue_destroy(&pool->tasks);
+    priority_queue_destroy(&pool->tasks);
 }
 
 void thread_pool_schedule(struct thread_pool *pool,
-                          thread_pool_task_function function, void *argument) {
+                          thread_pool_task_function function, void *argument,
+                          float priority) {
     pthread_mutex_lock(&pool->tasks_lock);
 
     struct thread_pool_task *task = malloc(sizeof(struct thread_pool_task));
     task->function = function;
     task->argument = argument;
 
-    queue_enqueue(&pool->tasks, task);
+    priority_queue_push(&pool->tasks, task, priority);
     pthread_mutex_unlock(&pool->tasks_lock);
 
     pthread_cond_signal(&pool->task_available);

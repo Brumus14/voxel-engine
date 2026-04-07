@@ -11,7 +11,7 @@
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
                 enum chunk_type type, struct tilemap *tilemap) {
-    atomic_init(&chunk->visible, false);
+    chunk->visible = false;
     atomic_init(&chunk->blocks, NULL);
     atomic_init(&chunk->unloaded, false);
     atomic_init(&chunk->ref_count, 0);
@@ -22,6 +22,7 @@ void chunk_init(struct chunk *chunk, struct vec3i position,
 
     chunk->position = position;
     chunk->type = type;
+    chunk->neighbor_load_count = 0;
     chunk->tilemap = tilemap;
     dynamic_array_init(&chunk->vertices, sizeof(float));
     dynamic_array_init(&chunk->indices, sizeof(unsigned int));
@@ -71,7 +72,7 @@ void chunk_update_buffers(struct chunk *chunk) {
 }
 
 void chunk_draw(struct chunk *chunk) {
-    if (!atomic_load(&chunk->visible)) {
+    if (!chunk->visible) {
         return;
     }
 
