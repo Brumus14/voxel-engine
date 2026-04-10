@@ -10,8 +10,6 @@
 #include "../math/math_util.h"
 #include "../util/stopwatch.h"
 
-// TODO: Check if the struct chunk has been unloaded if so then cancel
-// Doesn't free arg
 void *worker_generate_chunk_terrain(void *arg) {
     struct worker_generate_chunk_terrain_args *args = arg;
     struct chunk *chunk = args->chunk;

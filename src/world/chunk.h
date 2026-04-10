@@ -103,16 +103,6 @@ static const unsigned int FACE_INDICES[6][4] = {
 
 static const int INDEX_ORDER[6] = {0, 1, 2,
                                    0, 2, 3};
-
-// Order specified in direction.h
-static const struct vec3i NEIGHBOR_OFFSETS[6] = {
-    {-1,  0,  0},
-    { 1,  0,  0},
-    { 0, -1,  0},
-    { 0,  1,  0},
-    { 0,  0, -1},
-    { 0,  0,  1},
-};
 // clang-format on
 
 void chunk_init(struct chunk *chunk, struct vec3i position,

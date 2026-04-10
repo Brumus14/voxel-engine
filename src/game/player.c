@@ -5,10 +5,9 @@
 #include "../math/math_util.h"
 #include "../physics/collision.h"
 #include "../math/cuboid.h"
-#include "../util/gl.h"
-#include "../data_structures/linked_list.h"
 #include "../data_structures/hash_map.h"
 #include "../world/chunk.h"
+#include "../util/direction.h"
 
 void player_init(struct player *player, struct vec3d position,
                  struct vec3d rotation, double sensitivity,
@@ -23,44 +22,58 @@ void player_init(struct player *player, struct vec3d position,
     player->sprinting = false;
 }
 
-bool valid_position(struct world *world, struct vec3d position) {
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                if (z == 0 && y == 0 && x == 0) {
-                    continue;
-                }
+// Rename function
+// dont think framerate independent, need to add in delta time somewhere
+void update_movement(struct player *player, struct window *window,
+                     struct world *world) {
+    for (int i = 0; i < 6; i++) {
+        int x = DIRECTIONS[i].x;
+        int y = DIRECTIONS[i].y;
+        int z = DIRECTIONS[i].z;
 
-                struct vec3d block_position =
-                    vec3d_add(position, (struct vec3d){x, y, z});
+        struct vec3i block_position =
+            vec3i_add(vec3i_from_vec3d_floor(player->position), DIRECTIONS[i]);
 
-                if (world_get_block(world, (struct vec3i){block_position.x,
-                                                          block_position.y,
-                                                          block_position.z}) ==
-                    BLOCK_TYPE_EMPTY) {
-                    continue;
-                }
+        if (world_get_block(world, block_position) == BLOCK_TYPE_EMPTY) {
+            continue;
+        }
 
-                struct cuboid voxel_cuboid;
-                cuboid_init(&voxel_cuboid, floor(position.x + x),
-                            floor(position.y + y), floor(position.z + z), 1, 1,
-                            1);
+        struct cuboid voxel_cuboid;
+        cuboid_init(&voxel_cuboid, block_position.x, block_position.y,
+                    block_position.z, 1, 1, 1);
 
-                // function to get this or store as variable
-                struct cuboid player_cuboid;
-                cuboid_init(&player_cuboid, position.x - (COLLISION_BOX_X / 2),
-                            position.y - (COLLISION_BOX_Y / 2),
-                            position.z - (COLLISION_BOX_Z / 2), COLLISION_BOX_X,
-                            COLLISION_BOX_Y, COLLISION_BOX_Z);
+        struct cuboid player_cuboid;
+        cuboid_init(&player_cuboid, player->position.x - (COLLISION_BOX_X / 2),
+                    player->position.y - (COLLISION_BOX_Y / 2),
+                    player->position.z - (COLLISION_BOX_Z / 2), COLLISION_BOX_X,
+                    COLLISION_BOX_Y, COLLISION_BOX_Z);
 
-                if (collision_aabb_3d(player_cuboid, voxel_cuboid)) {
-                    return false;
-                }
+        if (collision_aabb_3d(player_cuboid, voxel_cuboid)) {
+            if (x != 0) {
+                player->velocity.x = 0;
+                player->position.x = (block_position.x + 0.5) -
+                                     x * (0.5 + 0.0001 + COLLISION_BOX_X / 2);
+            }
+
+            if (y != 0) {
+                player->velocity.y = 0;
+                player->position.y = (block_position.y + 0.5) -
+                                     y * (0.5 + 0.0001 + COLLISION_BOX_Y / 2);
+            }
+
+            if (z != 0) {
+                player->velocity.z = 0;
+                player->position.z = (block_position.z + 0.5) -
+                                     z * (0.5 + 0.0001 + COLLISION_BOX_Z / 2);
             }
         }
     }
 
-    return true;
+    double delta_time = window_get_delta_time(window);
+
+    vec3d_add_to(player->position,
+                 vec3d_scalar_multiply(player->velocity, delta_time),
+                 &player->position);
 }
 
 void player_update_rotation(struct player *player, struct window *window) {
@@ -77,7 +90,8 @@ void player_update_rotation(struct player *player, struct window *window) {
     player->rotation.y = fmod(player->rotation.y + 360, 360);
 }
 
-void player_update_movement(struct player *player, struct window *window) {
+void player_update_movement(struct player *player, struct window *window,
+                            struct world *world) {
     double delta_time = window_get_delta_time(window);
 
     struct vec3d relative_velocity_delta = VEC3D_ZERO;
@@ -137,23 +151,20 @@ void player_update_movement(struct player *player, struct window *window) {
 
     vec3d_normalise(&velocity_delta);
 
-    vec3d_scalar_multiply_to(velocity_delta, delta_time * 2, &velocity_delta);
+    vec3d_scalar_multiply_to(velocity_delta, 0.2, &velocity_delta);
 
     vec3d_add_to(player->velocity, velocity_delta, &player->velocity);
 
     vec3d_scalar_multiply_to(player->velocity, pow(0.2, delta_time),
                              &player->velocity);
 
-    vec3d_add_to(
-        player->position,
-        vec3d_scalar_multiply(player->velocity, delta_time * player->speed),
-        &player->position);
+    update_movement(player, window, world);
 }
 
 void player_update(struct player *player, struct window *window,
                    struct world *world) {
     player_update_rotation(player, window);
-    player_update_movement(player, window);
+    player_update_movement(player, window, world);
     player_manage_chunks(player, world);
 }
 
@@ -164,7 +175,7 @@ struct player_manage_chunks_chunk_context {
 };
 
 void player_manage_chunks_chunk(void *key, void *value, void *context) {
-    // TODO: Potentially quite unperformant to do this every time
+    // TODO: Potentially quite inefficient to do this every time
     struct vec3i *chunk_position = key;
     struct chunk *chunk = value;
 
@@ -189,7 +200,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 8; // move to a variable
+    int render_distance = 24; // move to a variable
     struct vec3i player_chunk = {
         floor(player->position.x / CHUNK_SIZE_X),
         floor(player->position.y / CHUNK_SIZE_Y),
@@ -397,7 +408,6 @@ void player_place_block(struct player *player, struct world *world,
     cuboid_init(&new_block_cubiod, block_position.x, block_position.y,
                 block_position.z, 1, 1, 1);
 
-    // TODO: use glm aabb
     if (!collision_aabb_3d(player_cuboid, new_block_cubiod)) {
         world_set_block(world, type, vec3i_from_vec3d_floor(block_position));
     }

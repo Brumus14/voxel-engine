@@ -15,6 +15,7 @@
 #include "worker.h"
 #include "../util/direction.h"
 #include "../util/log.h"
+#include "../util/direction.h"
 
 // Hash function from:
 // https://matthias-research.github.io/pages/publications/tetraederCollision.pdf
@@ -97,8 +98,7 @@ void world_load_chunk(struct world *world, struct vec3i position) {
     load_chunk(world, position, CHUNK_TYPE_FULL, false);
 
     for (int i = 0; i < 6; i++) {
-        struct vec3i neighbor_position =
-            vec3i_add(position, NEIGHBOR_OFFSETS[i]);
+        struct vec3i neighbor_position = vec3i_add(position, DIRECTIONS[i]);
 
         load_chunk(world, neighbor_position, CHUNK_TYPE_TERRAIN, true);
     }
@@ -124,8 +124,7 @@ void world_unload_chunk(struct world *world, struct vec3i position) {
     atomic_store(&chunk->unloaded, true);
 
     for (int i = 0; i < 6; i++) {
-        struct vec3i neighbor_position =
-            vec3i_add(position, NEIGHBOR_OFFSETS[i]);
+        struct vec3i neighbor_position = vec3i_add(position, DIRECTIONS[i]);
 
         struct chunk *neighbor =
             hash_map_get(&world->chunks, &neighbor_position);
@@ -146,8 +145,7 @@ void world_unload_chunk(struct world *world, struct vec3i position) {
 bool get_chunk_neighbors(struct world *world, struct vec3i position,
                          struct chunk **neighbors) {
     for (int i = 0; i < 6; i++) {
-        struct vec3i neighbor_position =
-            vec3i_add(position, NEIGHBOR_OFFSETS[i]);
+        struct vec3i neighbor_position = vec3i_add(position, DIRECTIONS[i]);
 
         neighbors[i] = hash_map_get(&world->chunks, &neighbor_position);
 
@@ -368,10 +366,10 @@ void world_set_block(struct world *world, enum block_type type,
 
     if (block_chunk_position.x == 0) {
         neighbor_position =
-            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_LEFT]);
+            vec3i_add(chunk_position, DIRECTIONS[DIRECTION_LEFT]);
     } else if (block_chunk_position.x == CHUNK_SIZE_X - 1) {
         neighbor_position =
-            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_RIGHT]);
+            vec3i_add(chunk_position, DIRECTIONS[DIRECTION_RIGHT]);
     }
 
     neighbor = hash_map_get(&world->chunks, &neighbor_position);
@@ -382,10 +380,10 @@ void world_set_block(struct world *world, enum block_type type,
 
     if (block_chunk_position.y == 0) {
         neighbor_position =
-            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_BOTTOM]);
+            vec3i_add(chunk_position, DIRECTIONS[DIRECTION_BOTTOM]);
     } else if (block_chunk_position.y == CHUNK_SIZE_Y - 1) {
         neighbor_position =
-            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_TOP]);
+            vec3i_add(chunk_position, DIRECTIONS[DIRECTION_TOP]);
     }
 
     neighbor = hash_map_get(&world->chunks, &neighbor_position);
@@ -396,10 +394,10 @@ void world_set_block(struct world *world, enum block_type type,
 
     if (block_chunk_position.z == 0) {
         neighbor_position =
-            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_BACK]);
+            vec3i_add(chunk_position, DIRECTIONS[DIRECTION_BACK]);
     } else if (block_chunk_position.z == CHUNK_SIZE_Z - 1) {
         neighbor_position =
-            vec3i_add(chunk_position, NEIGHBOR_OFFSETS[DIRECTION_FRONT]);
+            vec3i_add(chunk_position, DIRECTIONS[DIRECTION_FRONT]);
     }
 
     neighbor = hash_map_get(&world->chunks, &neighbor_position);
