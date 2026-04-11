@@ -1,3 +1,4 @@
+Improve collision for fast moving
 Worker task priorities (using thread pool priority queue with a heap)
 Unloading chunks unloads terrain only chunks aswell
 Neighbor loading stuff should be reviewed
@@ -21,7 +22,6 @@ Maybe optimise thread pool queue for SPMC
 Workers can cancel tasks if chunk is being unloaded
 Check for any race conditions / multithreading bugs (potentially to do with chunk iteration)
 Improve meshing like greedy meshing
-Reimplement collision
 Gravity
 Make flying more responsive
 Better lighting

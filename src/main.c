@@ -56,7 +56,7 @@ int main() {
     // 21474836.0
     // 2147483.0
     struct player player;
-    player_init(&player, (struct vec3d){8.0, 24.0, 8.0}, VEC3D_ZERO, 0.05,
+    player_init(&player, (struct vec3d){8.0, 8.0, 8.0}, VEC3D_ZERO, 0.05,
                 &camera);
 
     while (!window_should_close(&window)) {

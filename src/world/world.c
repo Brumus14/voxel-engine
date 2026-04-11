@@ -192,7 +192,7 @@ void world_update_chunk(void *key, void *value, void *arg) {
     }
 
     // Maybe move this inside chunk
-    struct vec3i chunk_position_block = vec3i_dot_product(
+    struct vec3i chunk_block_position = vec3i_dot_product(
         chunk->position,
         (struct vec3i){CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z});
 
@@ -211,9 +211,9 @@ void world_update_chunk(void *key, void *value, void *arg) {
 
         atomic_fetch_add(&chunk->ref_count, 1);
         float priority =
-            sqrtf(pow(chunk_position_block.x - player_position.x, 2) +
-                  pow(chunk_position_block.y - player_position.y, 2) +
-                  pow(chunk_position_block.z - player_position.z, 2));
+            sqrtf(pow(chunk_block_position.x - player_position.x, 2) +
+                  pow(chunk_block_position.y - player_position.y, 2) +
+                  pow(chunk_block_position.z - player_position.z, 2));
         thread_pool_schedule(&world->workers, worker_generate_chunk_terrain,
                              args, priority);
 
@@ -257,9 +257,9 @@ void world_update_chunk(void *key, void *value, void *arg) {
 
             atomic_fetch_add(&chunk->ref_count, 1);
             float priority =
-                sqrtf(pow(chunk_position_block.x - player_position.x, 2) +
-                      pow(chunk_position_block.y - player_position.y, 2) +
-                      pow(chunk_position_block.z - player_position.z, 2));
+                sqrtf(pow(chunk_block_position.x - player_position.x, 2) +
+                      pow(chunk_block_position.y - player_position.y, 2) +
+                      pow(chunk_block_position.z - player_position.z, 2));
             thread_pool_schedule(workers, worker_generate_chunk_mesh, args,
                                  priority);
 

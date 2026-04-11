@@ -24,56 +24,149 @@ void player_init(struct player *player, struct vec3d position,
 
 // Rename function
 // dont think framerate independent, need to add in delta time somewhere
-void update_movement(struct player *player, struct window *window,
+void update_movement(struct player *player, float delta_time,
                      struct world *world) {
-    for (int i = 0; i < 6; i++) {
-        int x = DIRECTIONS[i].x;
-        int y = DIRECTIONS[i].y;
-        int z = DIRECTIONS[i].z;
+    struct vec3d independent_velocity =
+        vec3d_scalar_multiply(player->velocity, delta_time);
 
-        struct vec3i block_position =
-            vec3i_add(vec3i_from_vec3d_floor(player->position), DIRECTIONS[i]);
+    int min_x =
+        floor(player->position.x - COLLISION_BOX_X / 2 + COLLISION_EPSILON);
+    int max_x =
+        ceil(player->position.x + COLLISION_BOX_X / 2 - COLLISION_EPSILON) - 1;
+    int min_y =
+        floor(player->position.y - COLLISION_BOX_Y / 2 + COLLISION_EPSILON);
+    int max_y =
+        ceil(player->position.y + COLLISION_BOX_Y / 2 - COLLISION_EPSILON) - 1;
+    int min_z =
+        floor(player->position.z - COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
+    int max_z =
+        ceil(player->position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) - 1;
 
-        if (world_get_block(world, block_position) == BLOCK_TYPE_EMPTY) {
-            continue;
+    if (independent_velocity.x != 0) {
+        int new_min_x = floor(player->position.x + independent_velocity.x -
+                              COLLISION_BOX_X / 2 + COLLISION_EPSILON);
+        int new_max_x = ceil(player->position.x + independent_velocity.x +
+                             COLLISION_BOX_X / 2 - COLLISION_EPSILON) -
+                        1;
+
+        int x = independent_velocity.x > 0 ? new_max_x : new_min_x;
+        bool x_move = true;
+
+        for (int y = min_y; y <= max_y; y++) {
+            for (int z = min_z; z <= max_z; z++) {
+                struct vec3i block_position = {x, y, z};
+
+                if (world_get_block(world, block_position) !=
+                    BLOCK_TYPE_EMPTY) {
+                    x_move = false;
+                    break;
+                }
+            }
+
+            if (!x_move) {
+                break;
+            }
         }
 
-        struct cuboid voxel_cuboid;
-        cuboid_init(&voxel_cuboid, block_position.x, block_position.y,
-                    block_position.z, 1, 1, 1);
-
-        struct cuboid player_cuboid;
-        cuboid_init(&player_cuboid, player->position.x - (COLLISION_BOX_X / 2),
-                    player->position.y - (COLLISION_BOX_Y / 2),
-                    player->position.z - (COLLISION_BOX_Z / 2), COLLISION_BOX_X,
-                    COLLISION_BOX_Y, COLLISION_BOX_Z);
-
-        if (collision_aabb_3d(player_cuboid, voxel_cuboid)) {
-            if (x != 0) {
-                player->velocity.x = 0;
-                player->position.x = (block_position.x + 0.5) -
-                                     x * (0.5 + 0.0001 + COLLISION_BOX_X / 2);
-            }
-
-            if (y != 0) {
-                player->velocity.y = 0;
-                player->position.y = (block_position.y + 0.5) -
-                                     y * (0.5 + 0.0001 + COLLISION_BOX_Y / 2);
-            }
-
-            if (z != 0) {
-                player->velocity.z = 0;
-                player->position.z = (block_position.z + 0.5) -
-                                     z * (0.5 + 0.0001 + COLLISION_BOX_Z / 2);
-            }
+        if (x_move) {
+            player->position.x += independent_velocity.x;
+        } else {
+            player->velocity.x = 0;
+            player->position.x =
+                x + 0.5 -
+                (0.5 + COLLISION_BOX_X / 2) * sign(independent_velocity.x);
         }
+
+        min_x =
+            floor(player->position.x - COLLISION_BOX_X / 2 + COLLISION_EPSILON);
+        max_x =
+            ceil(player->position.x + COLLISION_BOX_X / 2 - COLLISION_EPSILON) -
+            1;
     }
 
-    double delta_time = window_get_delta_time(window);
+    if (independent_velocity.y != 0) {
+        int new_min_y = floor(player->position.y + independent_velocity.y -
+                              COLLISION_BOX_Y / 2 + COLLISION_EPSILON);
+        int new_max_y = ceil(player->position.y + independent_velocity.y +
+                             COLLISION_BOX_Y / 2 - COLLISION_EPSILON) -
+                        1;
 
-    vec3d_add_to(player->position,
-                 vec3d_scalar_multiply(player->velocity, delta_time),
-                 &player->position);
+        int y = independent_velocity.y > 0 ? new_max_y : new_min_y;
+        bool y_move = true;
+
+        for (int x = min_x; x <= max_x; x++) {
+            for (int z = min_z; z <= max_z; z++) {
+                struct vec3i block_position = {x, y, z};
+
+                if (world_get_block(world, block_position) !=
+                    BLOCK_TYPE_EMPTY) {
+                    y_move = false;
+                    break;
+                }
+            }
+
+            if (!y_move) {
+                break;
+            }
+        }
+
+        if (y_move) {
+            player->position.y += independent_velocity.y;
+        } else {
+            player->velocity.y = 0;
+            player->position.y =
+                y + 0.5 -
+                (0.5 + COLLISION_BOX_Y / 2) * sign(independent_velocity.y);
+        }
+
+        min_y =
+            floor(player->position.y - COLLISION_BOX_Y / 2 + COLLISION_EPSILON);
+        max_y =
+            ceil(player->position.y + COLLISION_BOX_Y / 2 - COLLISION_EPSILON) -
+            1;
+    }
+
+    if (independent_velocity.z != 0) {
+        int new_min_z = floor(player->position.z + independent_velocity.z -
+                              COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
+        int new_max_z = ceil(player->position.z + independent_velocity.z +
+                             COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
+                        1;
+
+        int z = independent_velocity.z > 0 ? new_max_z : new_min_z;
+        bool z_move = true;
+
+        for (int x = min_x; x <= max_x; x++) {
+            for (int y = min_y; y <= max_y; y++) {
+                struct vec3i block_position = {x, y, z};
+
+                if (world_get_block(world, block_position) !=
+                    BLOCK_TYPE_EMPTY) {
+                    z_move = false;
+                    break;
+                }
+            }
+
+            if (!z_move) {
+                break;
+            }
+        }
+
+        if (z_move) {
+            player->position.z += independent_velocity.z;
+        } else {
+            player->velocity.z = 0;
+            player->position.z =
+                z + 0.5 -
+                (0.5 + COLLISION_BOX_Z / 2) * sign(independent_velocity.z);
+        }
+
+        min_z =
+            floor(player->position.z - COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
+        max_z =
+            ceil(player->position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
+            1;
+    }
 }
 
 void player_update_rotation(struct player *player, struct window *window) {
@@ -85,7 +178,8 @@ void player_update_rotation(struct player *player, struct window *window) {
 
     vec3d_add_to(player->rotation, rotation_delta, &player->rotation);
 
-    // Clamp up and down rotation, and keep y rotation always between 0, 360
+    // Clamp up and down rotation, and keep y rotation always between 0,
+    // 360
     player->rotation.x = clamp(player->rotation.x, -89.9, 89.9);
     player->rotation.y = fmod(player->rotation.y + 360, 360);
 }
@@ -151,14 +245,15 @@ void player_update_movement(struct player *player, struct window *window,
 
     vec3d_normalise(&velocity_delta);
 
-    vec3d_scalar_multiply_to(velocity_delta, 0.2, &velocity_delta);
+    vec3d_scalar_multiply_to(velocity_delta, player->speed * 0.2,
+                             &velocity_delta);
 
     vec3d_add_to(player->velocity, velocity_delta, &player->velocity);
 
     vec3d_scalar_multiply_to(player->velocity, pow(0.2, delta_time),
                              &player->velocity);
 
-    update_movement(player, window, world);
+    update_movement(player, delta_time, world);
 }
 
 void player_update(struct player *player, struct window *window,
@@ -200,7 +295,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 24; // move to a variable
+    int render_distance = 8; // move to a variable
     struct vec3i player_chunk = {
         floor(player->position.x / CHUNK_SIZE_X),
         floor(player->position.y / CHUNK_SIZE_Y),
@@ -241,7 +336,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
 bool player_get_target_block(struct player *player, struct world *world,
                              struct vec3d *position_dest,
                              enum block_face *face) {
-    float max_ray_length = 5; // move to variable
+    float max_ray_length = 999; // move to variable
     struct vec3d ray_origin = player->camera->position;
 
     // If inside block

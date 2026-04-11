@@ -16,6 +16,8 @@
 #define COLLISION_BOX_Y 1.8
 #define COLLISION_BOX_Z 0.6
 
+#define COLLISION_EPSILON 1e-6
+
 struct player {
     struct vec3d position;
     struct vec3d rotation;
