@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "../math/math_util.h"
@@ -210,10 +211,8 @@ void player_update_movement(struct player *player, struct window *window,
 
     if (keyboard_key_down(&window->keyboard, KEYCODE_SPACE)) {
         relative_velocity_delta.y += 1;
-    }
-
-    if (keyboard_key_down(&window->keyboard, KEYCODE_LEFT_SHIFT)) {
-        relative_velocity_delta.y -= 1;
+    } else {
+        relative_velocity_delta.y -= 3;
     }
 
     if (vec3d_magnitude(relative_velocity_delta) == 0) {
@@ -256,6 +255,79 @@ void player_update_movement(struct player *player, struct window *window,
     update_movement(player, delta_time, world);
 }
 
+// FLYING
+// void player_update_movement(struct player *player, struct window *window,
+//                             struct world *world) {
+//     double delta_time = window_get_delta_time(window);
+//
+//     struct vec3d relative_velocity_delta = VEC3D_ZERO;
+//     struct vec3d velocity_delta = VEC3D_ZERO;
+//
+//     // Calculate the relative velocity
+//     if (keyboard_key_down(&window->keyboard, KEYCODE_S)) {
+//         relative_velocity_delta.z += 1;
+//     }
+//
+//     if (keyboard_key_down(&window->keyboard, KEYCODE_W)) {
+//         relative_velocity_delta.z -= 1;
+//     }
+//
+//     if (keyboard_key_down(&window->keyboard, KEYCODE_A)) {
+//         relative_velocity_delta.x -= 1;
+//     }
+//
+//     if (keyboard_key_down(&window->keyboard, KEYCODE_D)) {
+//         relative_velocity_delta.x += 1;
+//     }
+//
+//     if (keyboard_key_down(&window->keyboard, KEYCODE_SPACE)) {
+//         relative_velocity_delta.y += 1;
+//     }
+//
+//     if (keyboard_key_down(&window->keyboard, KEYCODE_LEFT_SHIFT)) {
+//         relative_velocity_delta.y -= 1;
+//     }
+//
+//     if (vec3d_magnitude(relative_velocity_delta) == 0) {
+//         player->sprinting = false;
+//     }
+//
+//     // Convert relative velocity delta to global velocity delta
+//     struct vec3d up = (struct vec3d){0, 1, 0};
+//     struct vec3d forwards =
+//         vec3d_scalar_multiply(rotation_to_direction(player->rotation), -1);
+//
+//     // Remove forwards vertical component
+//     forwards.y = 0;
+//     vec3d_normalise(&forwards);
+//
+//     struct vec3d right = vec3d_cross_product(up, forwards);
+//
+//     vec3d_add_to(velocity_delta,
+//                  vec3d_scalar_multiply(up, relative_velocity_delta.y),
+//                  &velocity_delta);
+//
+//     vec3d_add_to(velocity_delta,
+//                  vec3d_scalar_multiply(forwards, relative_velocity_delta.z),
+//                  &velocity_delta);
+//
+//     vec3d_add_to(velocity_delta,
+//                  vec3d_scalar_multiply(right, relative_velocity_delta.x),
+//                  &velocity_delta);
+//
+//     vec3d_normalise(&velocity_delta);
+//
+//     vec3d_scalar_multiply_to(velocity_delta, player->speed * 0.2,
+//                              &velocity_delta);
+//
+//     vec3d_add_to(player->velocity, velocity_delta, &player->velocity);
+//
+//     vec3d_scalar_multiply_to(player->velocity, pow(0.2, delta_time),
+//                              &player->velocity);
+//
+//     update_movement(player, delta_time, world);
+// }
+
 void player_update(struct player *player, struct window *window,
                    struct world *world) {
     player_update_rotation(player, window);
@@ -274,14 +346,14 @@ void player_manage_chunks_chunk(void *key, void *value, void *context) {
     struct vec3i *chunk_position = key;
     struct chunk *chunk = value;
 
+    if (atomic_load(&chunk->unloaded) || chunk->type != CHUNK_TYPE_FULL) {
+        return;
+    }
+
     struct player_manage_chunks_chunk_context *c = context;
     struct world *world = c->world;
     int *render_distance = c->render_distance;
     struct vec3i *player_chunk = c->player_chunk;
-
-    // if (!chunk) {
-    //     return;
-    // }
 
     if (abs(player_chunk->x - chunk->position.x) > *render_distance ||
         abs(player_chunk->y - chunk->position.y) > *render_distance ||
@@ -494,10 +566,13 @@ void player_place_block(struct player *player, struct world *world,
 
     // Check if new block would collide with player
     struct cuboid player_cuboid;
-    cuboid_init(&player_cuboid, player->position.x - (COLLISION_BOX_X / 2),
-                player->position.y - (COLLISION_BOX_Y / 2),
-                player->position.z - (COLLISION_BOX_Z / 2), COLLISION_BOX_X,
-                COLLISION_BOX_Y, COLLISION_BOX_Z);
+    cuboid_init(&player_cuboid,
+                player->position.x - COLLISION_BOX_X / 2 + COLLISION_EPSILON,
+                player->position.y - COLLISION_BOX_Y / 2 + COLLISION_EPSILON,
+                player->position.z - COLLISION_BOX_Z / 2 + COLLISION_EPSILON,
+                COLLISION_BOX_X - 2 * COLLISION_EPSILON,
+                COLLISION_BOX_Y - 2 * COLLISION_EPSILON,
+                COLLISION_BOX_Z - 2 * COLLISION_EPSILON);
 
     struct cuboid new_block_cubiod;
     cuboid_init(&new_block_cubiod, block_position.x, block_position.y,

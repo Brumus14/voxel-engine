@@ -1,6 +1,7 @@
+Better textures
+Update task priorities when moving
+Render distance 0 edit terrain chunk and mesh always visible
 Improve collision for fast moving
-Worker task priorities (using thread pool priority queue with a heap)
-Unloading chunks unloads terrain only chunks aswell
 Neighbor loading stuff should be reviewed
 Closing window doesn't clean up memory properly
 *When two workers simultaneously generating mesh, both modify vertices and indices

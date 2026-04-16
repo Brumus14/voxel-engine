@@ -106,7 +106,6 @@ void *hash_map_get(struct hash_map *map, void *key) {
 }
 
 void *hash_map_remove(struct hash_map *map, void *key) {
-    // printf("%d\n", --c);
     unsigned int index = map->hash_function(key) % map->bucket_count;
 
     struct hash_map_node *current_node = map->buckets[index];
