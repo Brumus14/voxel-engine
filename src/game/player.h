@@ -7,7 +7,8 @@
 #include "../world/world.h"
 #include "../world/block.h"
 
-#define DEFAULT_SPEED 10.92
+// #define DEFAULT_SPEED 10.92
+#define DEFAULT_SPEED 8
 // #define DEFAULT_SPEED 2000
 // TODO: sprinting not actually implemented
 #define SPRINTING_SPEED 21.6
@@ -16,18 +17,18 @@
 #define COLLISION_BOX_Y 1.8
 #define COLLISION_BOX_Z 0.6
 
-#define COLLISION_EPSILON 1e-6
+#define COLLISION_EPSILON 1e-3
+#define GROUND_EPSILON 1e-3
 
 struct player {
-    struct vec3d position;
     struct vec3d rotation;
     struct camera *camera;
-    double acceleration;
-    double deceleration;
     double speed;
     struct vec3d velocity;
+    struct vec3d position;
     double sensitivity;
     bool sprinting;
+    bool on_ground;
 };
 
 void player_init(struct player *player, struct vec3d position,

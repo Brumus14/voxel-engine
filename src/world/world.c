@@ -42,8 +42,8 @@ void world_init(struct world *world) {
     // Use vec3i pointer instead?
     dynamic_array_init(&world->unloaded_chunks, sizeof(struct vec3i));
 
-    tilemap_init(&world->tilemap, "res/textures/atl.png",
-                 TEXTURE_FILTER_NEAREST, 32, 32, 1, 2);
+    tilemap_init(&world->tilemap, "res/textures/atlas.png",
+                 TEXTURE_FILTER_NEAREST, 16, 16, 1, 2);
 
     world->seed = random_int();
 

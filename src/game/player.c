@@ -8,16 +8,14 @@
 #include "../math/cuboid.h"
 #include "../data_structures/hash_map.h"
 #include "../world/chunk.h"
-#include "../util/direction.h"
 
 void player_init(struct player *player, struct vec3d position,
                  struct vec3d rotation, double sensitivity,
                  struct camera *camera) {
-    player->position = position;
     player->rotation = rotation;
     player->speed = DEFAULT_SPEED;
-    player->acceleration = player->speed * 8;
     player->velocity = VEC3D_ZERO;
+    player->position = position;
     player->sensitivity = sensitivity;
     player->camera = camera;
     player->sprinting = false;
@@ -185,41 +183,62 @@ void player_update_rotation(struct player *player, struct window *window) {
     player->rotation.y = fmod(player->rotation.y + 360, 360);
 }
 
+bool is_on_ground(struct world *world, struct vec3d position) {
+    int min_x = floor(position.x - COLLISION_BOX_X / 2 + COLLISION_EPSILON);
+    int max_x = ceil(position.x + COLLISION_BOX_X / 2 - COLLISION_EPSILON) - 1;
+    int y = floor(position.y - COLLISION_BOX_Y / 2 - GROUND_EPSILON);
+    int min_z = floor(position.z - COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
+    int max_z = ceil(position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) - 1;
+
+    bool on_ground = false;
+
+    for (int x = min_x; x <= max_x; x++) {
+        for (int z = min_z; z <= max_z; z++) {
+            struct vec3i block_position = {x, y, z};
+
+            if (world_get_block(world, block_position) != BLOCK_TYPE_EMPTY) {
+                on_ground = true;
+                break;
+            }
+        }
+
+        if (on_ground) {
+            break;
+        }
+    }
+
+    return on_ground;
+}
+
 void player_update_movement(struct player *player, struct window *window,
                             struct world *world) {
     double delta_time = window_get_delta_time(window);
 
-    struct vec3d relative_velocity_delta = VEC3D_ZERO;
-    struct vec3d velocity_delta = VEC3D_ZERO;
+    player->on_ground = is_on_ground(world, player->position);
 
-    // Calculate the relative velocity
-    if (keyboard_key_down(&window->keyboard, KEYCODE_S)) {
-        relative_velocity_delta.z += 1;
-    }
+    struct vec3d input = VEC3D_ZERO;
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_W)) {
-        relative_velocity_delta.z -= 1;
+    if (keyboard_key_down(&window->keyboard, KEYCODE_D)) {
+        input.x += 1;
     }
 
     if (keyboard_key_down(&window->keyboard, KEYCODE_A)) {
-        relative_velocity_delta.x -= 1;
+        input.x -= 1;
     }
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_D)) {
-        relative_velocity_delta.x += 1;
+    if (keyboard_key_down(&window->keyboard, KEYCODE_S)) {
+        input.z += 1;
     }
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_SPACE)) {
-        relative_velocity_delta.y += 1;
-    } else {
-        relative_velocity_delta.y -= 3;
+    if (keyboard_key_down(&window->keyboard, KEYCODE_W)) {
+        input.z -= 1;
     }
 
-    if (vec3d_magnitude(relative_velocity_delta) == 0) {
-        player->sprinting = false;
-    }
+    vec3d_normalise(&input);
 
     // Convert relative velocity delta to global velocity delta
+    struct vec3d target_velocity = VEC3D_ZERO;
+
     struct vec3d up = (struct vec3d){0, 1, 0};
     struct vec3d forwards =
         vec3d_scalar_multiply(rotation_to_direction(player->rotation), -1);
@@ -230,27 +249,30 @@ void player_update_movement(struct player *player, struct window *window,
 
     struct vec3d right = vec3d_cross_product(up, forwards);
 
-    vec3d_add_to(velocity_delta,
-                 vec3d_scalar_multiply(up, relative_velocity_delta.y),
-                 &velocity_delta);
+    vec3d_add_to(target_velocity, vec3d_scalar_multiply(up, input.y),
+                 &target_velocity);
 
-    vec3d_add_to(velocity_delta,
-                 vec3d_scalar_multiply(forwards, relative_velocity_delta.z),
-                 &velocity_delta);
+    vec3d_add_to(target_velocity, vec3d_scalar_multiply(forwards, input.z),
+                 &target_velocity);
 
-    vec3d_add_to(velocity_delta,
-                 vec3d_scalar_multiply(right, relative_velocity_delta.x),
-                 &velocity_delta);
+    vec3d_add_to(target_velocity, vec3d_scalar_multiply(right, input.x),
+                 &target_velocity);
 
-    vec3d_normalise(&velocity_delta);
+    vec3d_scalar_multiply_to(target_velocity, player->speed, &target_velocity);
 
-    vec3d_scalar_multiply_to(velocity_delta, player->speed * 0.2,
-                             &velocity_delta);
+    float acceleration = player->on_ground ? 20 : 5;
 
-    vec3d_add_to(player->velocity, velocity_delta, &player->velocity);
+    player->velocity.x +=
+        acceleration * (target_velocity.x - player->velocity.x) * delta_time;
+    player->velocity.z +=
+        acceleration * (target_velocity.z - player->velocity.z) * delta_time;
 
-    vec3d_scalar_multiply_to(player->velocity, pow(0.2, delta_time),
-                             &player->velocity);
+    player->velocity.y -= 30 * delta_time;
+
+    if (player->on_ground &&
+        keyboard_key_down(&window->keyboard, KEYCODE_SPACE)) {
+        player->velocity.y = 8.5;
+    }
 
     update_movement(player, delta_time, world);
 }
@@ -295,7 +317,8 @@ void player_update_movement(struct player *player, struct window *window,
 //     // Convert relative velocity delta to global velocity delta
 //     struct vec3d up = (struct vec3d){0, 1, 0};
 //     struct vec3d forwards =
-//         vec3d_scalar_multiply(rotation_to_direction(player->rotation), -1);
+//         vec3d_scalar_multiply(rotation_to_direction(player->rotation),
+//         -1);
 //
 //     // Remove forwards vertical component
 //     forwards.y = 0;
@@ -308,8 +331,8 @@ void player_update_movement(struct player *player, struct window *window,
 //                  &velocity_delta);
 //
 //     vec3d_add_to(velocity_delta,
-//                  vec3d_scalar_multiply(forwards, relative_velocity_delta.z),
-//                  &velocity_delta);
+//                  vec3d_scalar_multiply(forwards,
+//                  relative_velocity_delta.z), &velocity_delta);
 //
 //     vec3d_add_to(velocity_delta,
 //                  vec3d_scalar_multiply(right, relative_velocity_delta.x),
@@ -408,7 +431,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
 bool player_get_target_block(struct player *player, struct world *world,
                              struct vec3d *position_dest,
                              enum block_face *face) {
-    float max_ray_length = 999; // move to variable
+    float max_ray_length = 5; // move to variable
     struct vec3d ray_origin = player->camera->position;
 
     // If inside block
