@@ -13,12 +13,12 @@ void player_init(struct player *player, struct vec3d position,
                  struct vec3d rotation, double sensitivity,
                  struct camera *camera) {
     player->rotation = rotation;
-    player->speed = DEFAULT_SPEED;
     player->velocity = VEC3D_ZERO;
     player->position = position;
     player->sensitivity = sensitivity;
     player->camera = camera;
     player->sprinting = false;
+    player->flying = false;
 }
 
 // Rename function
@@ -216,62 +216,79 @@ void player_update_movement(struct player *player, struct window *window,
 
     player->on_ground = is_on_ground(world, player->position);
 
-    struct vec3d input = VEC3D_ZERO;
+    if (!player->flying) {
+        struct vec3d input = VEC3D_ZERO;
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_D)) {
-        input.x += 1;
-    }
+        if (keyboard_key_down(&window->keyboard, KEYCODE_D)) {
+            input.x += 1;
+        }
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_A)) {
-        input.x -= 1;
-    }
+        if (keyboard_key_down(&window->keyboard, KEYCODE_A)) {
+            input.x -= 1;
+        }
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_S)) {
-        input.z += 1;
-    }
+        if (keyboard_key_down(&window->keyboard, KEYCODE_S)) {
+            input.z += 1;
+        }
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_W)) {
-        input.z -= 1;
-    }
+        if (keyboard_key_down(&window->keyboard, KEYCODE_W)) {
+            input.z -= 1;
+        }
 
-    vec3d_normalise(&input);
+        vec3d_normalise(&input);
 
-    // Convert relative velocity delta to global velocity delta
-    struct vec3d target_velocity = VEC3D_ZERO;
+        bool moving = !vec3d_equal(input, VEC3D_ZERO);
 
-    struct vec3d up = (struct vec3d){0, 1, 0};
-    struct vec3d forwards =
-        vec3d_scalar_multiply(rotation_to_direction(player->rotation), -1);
+        if (moving &&
+            keyboard_key_just_down(&window->keyboard, KEYCODE_LEFT_CONTROL)) {
+            player->sprinting = !player->sprinting;
+        }
 
-    // Remove forwards vertical component
-    forwards.y = 0;
-    vec3d_normalise(&forwards);
+        if (!moving && player->sprinting) {
+            player->sprinting = false;
+        }
 
-    struct vec3d right = vec3d_cross_product(up, forwards);
+        // Convert relative velocity delta to global velocity delta
+        struct vec3d target_velocity = VEC3D_ZERO;
 
-    vec3d_add_to(target_velocity, vec3d_scalar_multiply(up, input.y),
-                 &target_velocity);
+        struct vec3d up = (struct vec3d){0, 1, 0};
+        struct vec3d forwards =
+            vec3d_scalar_multiply(rotation_to_direction(player->rotation), -1);
 
-    vec3d_add_to(target_velocity, vec3d_scalar_multiply(forwards, input.z),
-                 &target_velocity);
+        // Remove forwards vertical component
+        forwards.y = 0;
+        vec3d_normalise(&forwards);
 
-    vec3d_add_to(target_velocity, vec3d_scalar_multiply(right, input.x),
-                 &target_velocity);
+        struct vec3d right = vec3d_cross_product(up, forwards);
 
-    vec3d_scalar_multiply_to(target_velocity, player->speed, &target_velocity);
+        vec3d_add_to(target_velocity, vec3d_scalar_multiply(up, input.y),
+                     &target_velocity);
 
-    float acceleration = player->on_ground ? 20 : 5;
+        vec3d_add_to(target_velocity, vec3d_scalar_multiply(forwards, input.z),
+                     &target_velocity);
 
-    player->velocity.x +=
-        acceleration * (target_velocity.x - player->velocity.x) * delta_time;
-    player->velocity.z +=
-        acceleration * (target_velocity.z - player->velocity.z) * delta_time;
+        vec3d_add_to(target_velocity, vec3d_scalar_multiply(right, input.x),
+                     &target_velocity);
 
-    player->velocity.y -= 30 * delta_time;
+        float speed = player->sprinting ? SPRINTING_SPEED : DEFAULT_SPEED;
+        vec3d_scalar_multiply_to(target_velocity, speed, &target_velocity);
 
-    if (player->on_ground &&
-        keyboard_key_down(&window->keyboard, KEYCODE_SPACE)) {
-        player->velocity.y = 8.5;
+        float acceleration =
+            player->on_ground ? GROUND_ACCELERATION : AIR_ACCELERATION;
+
+        player->velocity.x += acceleration *
+                              (target_velocity.x - player->velocity.x) *
+                              delta_time;
+        player->velocity.z += acceleration *
+                              (target_velocity.z - player->velocity.z) *
+                              delta_time;
+
+        player->velocity.y -= GRAVITY_ACCELERATION * delta_time;
+
+        if (player->on_ground &&
+            keyboard_key_down(&window->keyboard, KEYCODE_SPACE)) {
+            player->velocity.y = JUMP_VELOCITY;
+        }
     }
 
     update_movement(player, delta_time, world);
