@@ -89,6 +89,10 @@ int main() {
                                                 : POLYGON_MODE_FILL);
         }
 
+        if (keyboard_key_just_down(&window.keyboard, KEYCODE_O)) {
+            player.flying = !player.flying;
+        }
+
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_ESCAPE)) {
             window_reset_cursor(&window);
         }

@@ -8,8 +8,10 @@
 #include "../world/block.h"
 
 // #define DEFAULT_SPEED 10.92
-#define DEFAULT_SPEED 6
+#define WALKING_SPEED 6
 #define SPRINTING_SPEED 10
+#define FLYING_SPEED 20
+#define FLYING_SPRINTING_SPEED 40
 #define GROUND_ACCELERATION 20
 #define AIR_ACCELERATION 2.5
 #define GRAVITY_ACCELERATION 30

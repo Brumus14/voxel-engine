@@ -13,7 +13,7 @@ void generate_perspective_matrix(struct camera *camera) {
     }
 
     glm_perspective(glm_rad(camera->fov), camera->aspect_ratio,
-                    camera->near_plane, camera->far_plane,
+                    camera->near_plane_distance, camera->far_plane_distance,
                     camera->projection_matrix);
 }
 
@@ -23,10 +23,8 @@ void generate_view_matrix(struct camera *camera) {
         return;
     }
 
-    struct vec3d direction = rotation_to_direction(camera->rotation);
-
     vec3 glm_direction;
-    vec3d_to_glm(direction, &glm_direction);
+    vec3d_to_glm(camera_get_direction(camera), &glm_direction);
 
     vec3 glm_position;
     vec3d_to_glm(camera->position, &glm_position);
@@ -37,7 +35,7 @@ void generate_view_matrix(struct camera *camera) {
 
 void camera_init(struct camera *camera, struct vec3d position,
                  struct vec3d rotation, double fov, double aspect_ratio,
-                 double near_plane, double far_plane) {
+                 double near_plane_distance, double far_plane_distance) {
     if (!camera) {
         fprintf(stderr, "camera_init: struct camera is null\n");
         return;
@@ -50,8 +48,8 @@ void camera_init(struct camera *camera, struct vec3d position,
     camera->rotation = rotation;
     camera->fov = fov;
     camera->aspect_ratio = aspect_ratio;
-    camera->near_plane = near_plane;
-    camera->far_plane = far_plane;
+    camera->near_plane_distance = near_plane_distance;
+    camera->far_plane_distance = far_plane_distance;
 
     generate_view_matrix(camera);
     generate_perspective_matrix(camera);
@@ -66,6 +64,24 @@ void camera_destroy(struct camera *camera) {
     shader_program_destroy(&camera->shader_program);
 }
 
+struct Frustum camera_get_frustum(struct camera *camera) {
+    struct Frustum frustum;
+    double half_vertical = camera->far_plane_distance * tan(camera->fov / 2);
+    double half_horizontal = half_vertical * camera->aspect_ratio;
+
+    struct vec3d direction = camera_get_direction(camera);
+
+    frustum.near_plane = (struct Plane){direction, camera->near_plane_distance};
+    frustum.far_plane = (struct Plane){vec3d_scalar_multiply(direction, -1),
+                                       camera->far_plane_distance};
+
+    return frustum;
+}
+
+struct vec3d camera_get_direction(struct camera *camera) {
+    return rotation_to_direction(camera->rotation);
+}
+
 void camera_set_position(struct camera *camera, struct vec3d position) {
     camera->position = position;
 }
@@ -77,13 +93,10 @@ void camera_move(struct camera *camera, struct vec3d movement_delta) {
         return;
     }
 
-    /*struct vec3d direction = direction_from_rotation(camera->rotation);*/
-    struct vec3d direction = rotation_to_direction(camera->rotation);
-
     struct vec3d position_delta;
     vec3d_init(&position_delta, 0.0, 0.0, 0.0);
 
-    struct vec3d forwards = direction;
+    struct vec3d forwards = camera_get_direction(camera);
     forwards.y = 0.0;
     vec3d_normalise(&forwards);
 
@@ -95,9 +108,9 @@ void camera_move(struct camera *camera, struct vec3d movement_delta) {
 
     position_delta =
         vec3d_add(position_delta,
-                  vec3d_scalar_multiply(
-                      vec3d_normalised(vec3d_cross_product(direction, up)),
-                      movement_delta.x));
+                  vec3d_scalar_multiply(vec3d_normalised(vec3d_cross_product(
+                                            camera_get_direction(camera), up)),
+                                        movement_delta.x));
 
     position_delta.y += movement_delta.y;
 

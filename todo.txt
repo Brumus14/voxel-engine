@@ -1,3 +1,4 @@
+Falling fast can clip into block
 Better textures
 Update task priorities when moving
 Render distance 0 edit terrain chunk and mesh always visible
@@ -20,10 +21,8 @@ Reduce looping in main, such as loading chunks in player
 Add get functions to renderer
 Move keyboard bindings from main
 Maybe optimise thread pool queue for SPMC
-Workers can cancel tasks if chunk is being unloaded
 Check for any race conditions / multithreading bugs (potentially to do with chunk iteration)
 Improve meshing like greedy meshing
-Gravity
 Make flying more responsive
 Better lighting
 Blocks orient correctly when placed
