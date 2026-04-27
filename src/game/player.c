@@ -8,6 +8,7 @@
 #include "../math/cuboid.h"
 #include "../data_structures/hash_map.h"
 #include "../world/chunk.h"
+#include "items.h"
 
 void player_init(struct player *player, struct vec3d position,
                  struct vec3d rotation, double sensitivity,
@@ -18,7 +19,9 @@ void player_init(struct player *player, struct vec3d position,
     player->sensitivity = sensitivity;
     player->camera = camera;
     player->sprinting = false;
-    player->flying = true;
+    player->flying = false;
+    player->moving = false;
+    player->on_ground = false;
 }
 
 // Rename function
@@ -214,7 +217,12 @@ void player_update_movement(struct player *player, struct window *window,
                             struct world *world) {
     double delta_time = window_get_delta_time(window);
 
+    bool previous_on_ground = player->on_ground;
     player->on_ground = is_on_ground(world, player->position);
+
+    if (!previous_on_ground && player->on_ground) {
+        stopwatch_start(&player->on_ground_timer);
+    }
 
     struct vec3d input = VEC3D_ZERO;
 
@@ -242,16 +250,20 @@ void player_update_movement(struct player *player, struct window *window,
         input.z -= 1;
     }
 
-    vec3d_normalise(&input);
+    bool previous_moving = player->moving;
+    player->moving = !vec3d_equal(input, VEC3D_ZERO);
 
-    bool moving = !vec3d_equal(input, VEC3D_ZERO);
-
-    if (moving &&
+    if (player->moving &&
         keyboard_key_just_down(&window->keyboard, KEYCODE_LEFT_CONTROL)) {
         player->sprinting = !player->sprinting;
     }
 
-    if (!moving && player->sprinting) {
+    if (!previous_moving && player->moving &&
+        keyboard_key_down(&window->keyboard, KEYCODE_LEFT_CONTROL)) {
+        player->sprinting = true;
+    }
+
+    if (!player->moving && player->sprinting) {
         player->sprinting = false;
     }
 
@@ -268,13 +280,15 @@ void player_update_movement(struct player *player, struct window *window,
 
     struct vec3d right = vec3d_cross_product(up, forwards);
 
-    vec3d_add_to(target_velocity, vec3d_scalar_multiply(up, input.y),
+    vec3d_add_to(target_velocity, vec3d_scalar_multiply(right, input.x),
                  &target_velocity);
 
     vec3d_add_to(target_velocity, vec3d_scalar_multiply(forwards, input.z),
                  &target_velocity);
 
-    vec3d_add_to(target_velocity, vec3d_scalar_multiply(right, input.x),
+    vec3d_normalise(&target_velocity);
+
+    vec3d_add_to(target_velocity, vec3d_scalar_multiply(up, input.y),
                  &target_velocity);
 
     float speed =
@@ -300,8 +314,11 @@ void player_update_movement(struct player *player, struct window *window,
     player->velocity.z +=
         acceleration * (target_velocity.z - player->velocity.z) * delta_time;
 
-    if (player->on_ground &&
-        keyboard_key_down(&window->keyboard, KEYCODE_SPACE)) {
+    if ((player->on_ground &&
+         keyboard_key_just_down(&window->keyboard, KEYCODE_SPACE)) ||
+        (player->on_ground &&
+         keyboard_key_down(&window->keyboard, KEYCODE_SPACE) &&
+         stopwatch_elapsed(&player->on_ground_timer) >= 0.05)) {
         player->velocity.y = JUMP_VELOCITY;
     }
 
@@ -309,9 +326,38 @@ void player_update_movement(struct player *player, struct window *window,
 }
 
 void player_update(struct player *player, struct window *window,
-                   struct world *world) {
+                   struct world *world, struct hotbar *hotbar) {
     player_update_rotation(player, window);
     player_update_movement(player, window, world);
+
+    camera_set_rotation(window->camera, player->rotation);
+    camera_set_position(window->camera,
+                        vec3d_add(player->position, (struct vec3d){0, 0.6, 0}));
+
+    double target_fov = player->sprinting ? SPRINTING_FOV : DEFAULT_FOV;
+    camera_set_fov(window->camera, window->camera->fov +
+                                       FOV_ACCELERATION *
+                                           (target_fov - window->camera->fov) *
+                                           window->delta_time);
+
+    if (mouse_button_just_down(&window->mouse, MOUSE_BUTTON_LEFT)) {
+        window_capture_cursor(window);
+        player_destroy_block(player, world);
+    }
+
+    if (mouse_button_just_down(&window->mouse, MOUSE_BUTTON_RIGHT)) {
+        enum block_type current_block =
+            item_type_to_block_type(hotbar_get_current_item(hotbar));
+
+        if ((int)current_block != -1) {
+            if (keyboard_key_down(&window->keyboard, KEYCODE_R)) {
+                player_replace_block(player, world, current_block);
+            } else {
+                player_place_block(player, world, current_block);
+            }
+        }
+    }
+
     player_manage_chunks(player, world);
 }
 
@@ -347,7 +393,7 @@ void player_manage_chunks(struct player *player, struct world *world) {
     //     return;
     // }
 
-    int render_distance = 4; // move to a variable
+    int render_distance = 8; // move to a variable
     struct vec3i player_chunk = {
         floor(player->position.x / CHUNK_SIZE_X),
         floor(player->position.y / CHUNK_SIZE_Y),

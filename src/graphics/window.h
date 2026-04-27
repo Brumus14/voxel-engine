@@ -20,6 +20,7 @@ struct window {
     int width;
     int height;
     char *title;
+    // Should camera, etc actually be here?
     struct camera *camera;
     struct keyboard keyboard;
     struct mouse mouse;

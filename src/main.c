@@ -14,6 +14,7 @@
 #include "gui/image.h"
 #include "gui/hotbar.h"
 #include "game/items.h"
+#include "game/state.h"
 
 // REMMEMBER TO AUTO BIND IN FUNCTIONS THAT ITS REQUIRED
 // make arguments const
@@ -49,6 +50,9 @@ int main() {
     hotbar_set_item(&hotbar, 3, ITEM_TYPE_COAL_BLOCK);
     hotbar_set_item(&hotbar, 4, ITEM_TYPE_LOG_BLOCK);
     hotbar_set_item(&hotbar, 5, ITEM_TYPE_DIAMOND_BLOCK);
+
+    struct state state;
+    state_init(&state);
 
     struct world world;
     world_init(&world);
@@ -94,25 +98,12 @@ int main() {
         }
 
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_ESCAPE)) {
-            window_reset_cursor(&window);
-        }
+            state.paused = !state.paused;
 
-        if (mouse_button_just_down(&window.mouse, MOUSE_BUTTON_LEFT)) {
-            window_capture_cursor(&window);
-            player_destroy_block(&player, &world);
-        }
-        // player_destroy_block(&player, &world);
-
-        if (mouse_button_just_down(&window.mouse, MOUSE_BUTTON_RIGHT)) {
-            enum block_type current_block =
-                item_type_to_block_type(hotbar_get_current_item(&hotbar));
-
-            if ((int)current_block != -1) {
-                if (keyboard_key_down(&window.keyboard, KEYCODE_R)) {
-                    player_replace_block(&player, &world, current_block);
-                } else {
-                    player_place_block(&player, &world, current_block);
-                }
+            if (state.paused) {
+                window_reset_cursor(&window);
+            } else {
+                window_capture_cursor(&window);
             }
         }
 
@@ -164,26 +155,8 @@ int main() {
             hotbar.current_slot = mod(hotbar.current_slot, 9);
         }
 
-        player_update(&player, &window, &world);
-
-        camera_set_rotation(&camera, player.rotation);
-        camera_set_position(
-            &camera, vec3d_add(player.position, (struct vec3d){0, 0.6, 0}));
-
-        if (player.sprinting) {
-            if (camera.fov < 90 * 1.1) {
-                camera_set_fov(
-                    &camera, camera.fov + window_get_delta_time(&window) * 70);
-            } else if (camera.fov > 90 * 1.1) {
-                camera_set_fov(&camera, 90 * 1.1);
-            }
-        } else {
-            if (camera.fov > 90) {
-                camera_set_fov(
-                    &camera, camera.fov - window_get_delta_time(&window) * 70);
-            } else if (camera.fov < 90) {
-                camera_set_fov(&camera, 90);
-            }
+        if (!state.paused) {
+            player_update(&player, &window, &world, &hotbar);
         }
 
         camera_prepare_draw(&camera);

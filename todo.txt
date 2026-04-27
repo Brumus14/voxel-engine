@@ -21,19 +21,15 @@ Reduce looping in main, such as loading chunks in player
 Add get functions to renderer
 Move keyboard bindings from main
 Maybe optimise thread pool queue for SPMC
-Check for any race conditions / multithreading bugs (potentially to do with chunk iteration)
 Improve meshing like greedy meshing
-Make flying more responsive
 Better lighting
 Blocks orient correctly when placed
 Frustum culling
-Allow workers to schedule tasks for chain tasking
 Maybe when modifying chunk don't re-mesh entire chunk just modified part
 When moving fast lots of chunks are scheduled even if they're now out of render distance
 Maybe rework chunk iteration as lots of argument parsing, maybe just access internal hash map
 Maybe rework worker as lots of argument parsing
 Chunk occlusion culling
 I think rendering is like blocked especially noticable when initially generating lots of chunks
-    Break out of worker tasks early by checking unloaded flag
 Pass by reference more
 Only load chunks on player movement

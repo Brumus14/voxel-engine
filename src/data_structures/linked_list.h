@@ -1,7 +1,7 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
-#include "stdbool.h"
+#include <stdbool.h>
 
 struct linked_list_node {
     void *data;
