@@ -1,3 +1,5 @@
+Framerate drops when loading new chunks
+Pack chunk vertex format since not high precision needed
 Falling fast can clip into block
 Better textures
 Update task priorities when moving

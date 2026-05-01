@@ -1,6 +1,8 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+#include <stdbool.h>
+
 enum block_type {
     BLOCK_TYPE_EMPTY = 0,
     BLOCK_TYPE_GRASS,
@@ -26,6 +28,7 @@ struct block_texture {
 };
 
 struct block_texture block_type_to_texture(enum block_type type);
+bool block_is_solid(enum block_type type);
 
 struct block {
     enum block_type type;

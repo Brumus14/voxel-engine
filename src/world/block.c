@@ -22,3 +22,25 @@ struct block_texture block_type_to_texture(enum block_type type) {
         return (struct block_texture){9, 9, 9, 9, 9, 9};
     }
 }
+
+// TODO: Better name?
+bool block_is_solid(enum block_type type) {
+    switch (type) {
+    case BLOCK_TYPE_EMPTY:
+        return false;
+    case BLOCK_TYPE_GRASS:
+        return true;
+    case BLOCK_TYPE_DIRT:
+        return true;
+    case BLOCK_TYPE_STONE:
+        return true;
+    case BLOCK_TYPE_COAL:
+        return true;
+    case BLOCK_TYPE_LOG:
+        return true;
+    case BLOCK_TYPE_DIAMOND:
+        return true;
+    case BLOCK_TYPE_LEAF:
+        return false;
+    }
+}

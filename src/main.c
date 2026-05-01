@@ -1,4 +1,3 @@
-#include "data_structures/priority_queue.h"
 #include "glad/glad.h"
 #include <pthread.h>
 #include <stdio.h>
@@ -50,6 +49,7 @@ int main() {
     hotbar_set_item(&hotbar, 3, ITEM_TYPE_COAL_BLOCK);
     hotbar_set_item(&hotbar, 4, ITEM_TYPE_LOG_BLOCK);
     hotbar_set_item(&hotbar, 5, ITEM_TYPE_DIAMOND_BLOCK);
+    hotbar_set_item(&hotbar, 6, ITEM_TYPE_LEAF_BLOCK);
 
     struct state state;
     state_init(&state);
@@ -84,7 +84,7 @@ int main() {
                                2}); // only run when struct window size changed
         hotbar_update_gui(&hotbar);
 
-        // printf("%f\n", 1.0 / window_get_delta_time(&window));
+        printf("%f\n", 1.0 / window_get_delta_time(&window));
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {

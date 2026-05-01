@@ -11,6 +11,7 @@ enum item_type {
     ITEM_TYPE_COAL_BLOCK,
     ITEM_TYPE_LOG_BLOCK,
     ITEM_TYPE_DIAMOND_BLOCK,
+    ITEM_TYPE_LEAF_BLOCK,
 };
 
 enum block_type item_type_to_block_type(enum item_type type);

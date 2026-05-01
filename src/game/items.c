@@ -1,5 +1,6 @@
 #include "items.h"
 
+// Use a map table
 enum block_type item_type_to_block_type(enum item_type type) {
     switch (type) {
     case ITEM_TYPE_GRASS_BLOCK:
@@ -14,7 +15,9 @@ enum block_type item_type_to_block_type(enum item_type type) {
         return BLOCK_TYPE_LOG;
     case ITEM_TYPE_DIAMOND_BLOCK:
         return BLOCK_TYPE_DIAMOND;
-    default:
+    case ITEM_TYPE_LEAF_BLOCK:
+        return BLOCK_TYPE_LEAF;
+    case ITEM_TYPE_EMPTY:
         return -1;
     }
 }
@@ -33,7 +36,9 @@ enum item_type block_type_to_item_type(enum block_type type) {
         return ITEM_TYPE_LOG_BLOCK;
     case BLOCK_TYPE_DIAMOND:
         return ITEM_TYPE_DIAMOND_BLOCK;
-    default:
+    case BLOCK_TYPE_LEAF:
+        return ITEM_TYPE_LEAF_BLOCK;
+    case ITEM_TYPE_EMPTY:
         return -1;
     }
 }
@@ -52,7 +57,9 @@ int item_type_to_texture_index(enum item_type type) {
         return 4;
     case ITEM_TYPE_DIAMOND_BLOCK:
         return 5;
-    default:
+    case ITEM_TYPE_LEAF_BLOCK:
+        return 0;
+    case ITEM_TYPE_EMPTY:
         return -1;
     }
 }

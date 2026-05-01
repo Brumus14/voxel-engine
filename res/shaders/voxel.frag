@@ -23,7 +23,7 @@ void main()
 
     vec3 result = diffuse * texture_colour.rgb; // Disco mode: * sin(camera_position)
 
-    frag_color_out = vec4(result, 1.0);
+    frag_color_out = vec4(result, texture_colour.a);
 
     // Black and white
     // float value = length(result);

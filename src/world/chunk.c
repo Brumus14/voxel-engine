@@ -88,72 +88,66 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
     switch (face) {
     case BLOCK_FACE_LEFT:
         if (position.x > 0) {
-            return chunk_get_block(
-                       chunk, (struct vec3i){position.x - 1, position.y,
-                                             position.z}) == BLOCK_TYPE_EMPTY;
+            return !block_is_solid(chunk_get_block(
+                chunk, (struct vec3i){position.x - 1, position.y, position.z}));
         } else {
             return !neighbors[DIRECTION_LEFT] ||
-                   chunk_get_block(neighbors[DIRECTION_LEFT],
-                                   (struct vec3i){CHUNK_SIZE_X - 1, position.y,
-                                                  position.z}) ==
-                       BLOCK_TYPE_EMPTY;
+                   !block_is_solid(
+                       chunk_get_block(neighbors[DIRECTION_LEFT],
+                                       (struct vec3i){CHUNK_SIZE_X - 1,
+                                                      position.y, position.z}));
         }
     case BLOCK_FACE_RIGHT:
         if (position.x < CHUNK_SIZE_X - 1) {
-            return chunk_get_block(
-                       chunk, (struct vec3i){position.x + 1, position.y,
-                                             position.z}) == BLOCK_TYPE_EMPTY;
+            return !block_is_solid(chunk_get_block(
+                chunk, (struct vec3i){position.x + 1, position.y, position.z}));
         } else {
             return !neighbors[DIRECTION_RIGHT] ||
-                   chunk_get_block(neighbors[DIRECTION_RIGHT],
-                                   (struct vec3i){0, position.y, position.z}) ==
-                       BLOCK_TYPE_EMPTY;
+                   !block_is_solid(chunk_get_block(
+                       neighbors[DIRECTION_RIGHT],
+                       (struct vec3i){0, position.y, position.z}));
         }
     case BLOCK_FACE_BOTTOM:
         if (position.y > 0) {
-            return chunk_get_block(
-                       chunk, (struct vec3i){position.x, position.y - 1,
-                                             position.z}) == BLOCK_TYPE_EMPTY;
+            return !block_is_solid(chunk_get_block(
+                chunk, (struct vec3i){position.x, position.y - 1, position.z}));
         } else {
             return !neighbors[DIRECTION_BOTTOM] ||
-                   chunk_get_block(neighbors[DIRECTION_BOTTOM],
-                                   (struct vec3i){position.x, CHUNK_SIZE_Y - 1,
-                                                  position.z}) ==
-                       BLOCK_TYPE_EMPTY;
+                   !block_is_solid(chunk_get_block(
+                       neighbors[DIRECTION_BOTTOM],
+                       (struct vec3i){position.x, CHUNK_SIZE_Y - 1,
+                                      position.z}));
         }
     case BLOCK_FACE_TOP:
         if (position.y < CHUNK_SIZE_Y - 1) {
-            return chunk_get_block(
-                       chunk, (struct vec3i){position.x, position.y + 1,
-                                             position.z}) == BLOCK_TYPE_EMPTY;
+            return !block_is_solid(chunk_get_block(
+                chunk, (struct vec3i){position.x, position.y + 1, position.z}));
         } else {
             return !neighbors[DIRECTION_TOP] ||
-                   chunk_get_block(neighbors[DIRECTION_TOP],
-                                   (struct vec3i){position.x, 0, position.z}) ==
-                       BLOCK_TYPE_EMPTY;
+                   !block_is_solid(chunk_get_block(
+                       neighbors[DIRECTION_TOP],
+                       (struct vec3i){position.x, 0, position.z}));
         }
     case BLOCK_FACE_BACK:
         if (position.z > 0) {
-            return chunk_get_block(chunk, (struct vec3i){position.x, position.y,
-                                                         position.z - 1}) ==
-                   BLOCK_TYPE_EMPTY;
+            return !block_is_solid(chunk_get_block(
+                chunk, (struct vec3i){position.x, position.y, position.z - 1}));
         } else {
             return !neighbors[DIRECTION_BACK] ||
-                   chunk_get_block(neighbors[DIRECTION_BACK],
-                                   (struct vec3i){position.x, position.y,
-                                                  CHUNK_SIZE_Z - 1}) ==
-                       BLOCK_TYPE_EMPTY;
+                   !block_is_solid(
+                       chunk_get_block(neighbors[DIRECTION_BACK],
+                                       (struct vec3i){position.x, position.y,
+                                                      CHUNK_SIZE_Z - 1}));
         }
     case BLOCK_FACE_FRONT:
         if (position.z < CHUNK_SIZE_Z - 1) {
-            return chunk_get_block(chunk, (struct vec3i){position.x, position.y,
-                                                         position.z + 1}) ==
-                   BLOCK_TYPE_EMPTY;
+            return !block_is_solid(chunk_get_block(
+                chunk, (struct vec3i){position.x, position.y, position.z + 1}));
         } else {
             return !neighbors[DIRECTION_FRONT] ||
-                   chunk_get_block(neighbors[DIRECTION_FRONT],
-                                   (struct vec3i){position.x, position.y, 0}) ==
-                       BLOCK_TYPE_EMPTY;
+                   !block_is_solid(chunk_get_block(
+                       neighbors[DIRECTION_FRONT],
+                       (struct vec3i){position.x, position.y, 0}));
         }
     }
 }

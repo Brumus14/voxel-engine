@@ -12,7 +12,6 @@ void renderer_init() {
 
     GL_CALL(glEnable(GL_DEPTH_TEST));
 
-    // TODO: What is this
     GL_CALL(glEnable(GL_BLEND));
     GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 }
