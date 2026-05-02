@@ -1,4 +1,4 @@
-#version 400
+#version 460 core
 
 in vec3 position_frag;
 in vec2 texture_coordinate_frag;
@@ -9,8 +9,7 @@ out vec4 frag_color_out;
 uniform vec3 camera_position;
 uniform sampler2D texture_sampler;
 
-void main()
-{
+void main() {
     // frag_color_out = texture(texture_sampler, texture_coordinate_frag);
 
     vec4 texture_colour = texture(texture_sampler, texture_coordinate_frag);

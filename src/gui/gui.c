@@ -33,6 +33,7 @@ void gui_update_matrix_uniform(struct gui *gui) {
     glm_ortho(0, gui->window->width, gui->window->height, 0, -1, 1,
               glm_orthographic);
 
+    // TODO: Remove raw opengl into renderer
     GL_CALL(glUniformMatrix4fv(gui->gl_orthographic_matrix_location, 1,
                                GL_FALSE, glm_orthographic[0]));
 }

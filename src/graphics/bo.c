@@ -35,6 +35,8 @@ GLenum to_gl_type(enum bo_type type) {
         return GL_ARRAY_BUFFER;
     case BO_TYPE_INDEX:
         return GL_ELEMENT_ARRAY_BUFFER;
+    case BO_TYPE_STORAGE:
+        return GL_SHADER_STORAGE_BUFFER;
     default:
         fprintf(stderr, "unknown buffer object type: %d\n", type);
         return GL_ARRAY_BUFFER;

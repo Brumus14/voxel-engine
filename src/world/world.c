@@ -16,6 +16,7 @@
 #include "../util/direction.h"
 #include "../util/log.h"
 #include "../util/direction.h"
+#include "../util/gl.h"
 
 // Hash function from:
 // https://matthias-research.github.io/pages/publications/tetraederCollision.pdf
@@ -48,9 +49,19 @@ void world_init(struct world *world) {
     world->seed = random_int();
 
     thread_pool_init(&world->workers, WORLD_WORKER_COUNT);
+
+    shader_program_from_files(&world->shader_program, "res/shaders/voxel.vert",
+                              "res/shaders/voxel.frag");
+    shader_program_bind_attribute(&world->shader_program, 0, "position");
+    shader_program_link(&world->shader_program);
+
+    world->gl_chunk_position_location = GL_CALL_R(
+        glGetUniformLocation(world->shader_program.gl_id, "chunk_position"),
+        GLint);
 }
 
 void world_destroy(struct world *world) {
+    shader_program_destroy(&world->shader_program);
     thread_pool_destroy(&world->workers);
     tilemap_destroy(&world->tilemap);
     dynamic_array_destroy(&world->unloaded_chunks);
@@ -309,16 +320,21 @@ void world_draw_chunk(void *key, void *value, void *arg) {
     // TODO: Surely this parsing every time is inefficient
     struct vec3i *position = key;
     struct chunk *chunk = value;
+    int *gl_chunk_position_location = arg;
 
-    chunk_draw(chunk);
+    chunk_draw(chunk, *gl_chunk_position_location);
+}
+
+void world_prepare_draw(struct world *world) {
+    texture_bind(&world->tilemap.texture);
+    shader_program_use(&world->shader_program);
 }
 
 void world_draw(struct world *world) {
-    texture_bind(&world->tilemap.texture);
-
     // TODO: Maybe dont use for each instead access internal data for better
     // performance
-    hash_map_for_each(&world->chunks, world_draw_chunk, NULL);
+    hash_map_for_each(&world->chunks, world_draw_chunk,
+                      &world->gl_chunk_position_location);
 }
 
 // use mipmapping

@@ -1,11 +1,12 @@
-#ifndef VBO_H
-#define VBO_H
+#ifndef BO_H
+#define BO_H
 
 #include "glad/glad.h"
 
 enum bo_type {
     BO_TYPE_VERTEX = 0,
     BO_TYPE_INDEX,
+    BO_TYPE_STORAGE,
 };
 
 struct bo {

@@ -29,14 +29,11 @@ struct camera {
     double far_plane_distance;
     mat4 view_matrix; // Use custom matrix structs
     mat4 projection_matrix;
-    // TODO: Why is this here
-    struct shader_program shader_program;
 };
 
 void camera_init(struct camera *camera, struct vec3d position,
                  struct vec3d rotation, double fov, double aspect_ratio,
                  double near_plane, double far_plane);
-void camera_destroy(struct camera *camera);
 struct vec3d camera_get_direction(struct camera *camera);
 void camera_set_position(struct camera *camera, struct vec3d position);
 void camera_move(struct camera *camera, struct vec3d movement_delta);

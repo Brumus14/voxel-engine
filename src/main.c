@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "graphics/camera.h"
+#include "graphics/shader_program.h"
 #include "graphics/window.h"
 #include "input/keyboard.h"
 #include "world/block.h"
@@ -159,10 +160,11 @@ int main() {
             player_update(&player, &window, &world, &hotbar);
         }
 
+        world_prepare_draw(&world);
         camera_prepare_draw(&camera);
 
         world_update(&world, player.position);
-        world_draw(&world); // SLOW
+        world_draw(&world);
 
         renderer_clear_depth_buffer();
         gui_draw(&gui);
@@ -173,7 +175,6 @@ int main() {
     gui_destroy(&gui);
     world_destroy(&world);
     hotbar_destroy(&hotbar);
-    camera_destroy(&camera);
     window_destroy(&window);
 
     window_shutdown();

@@ -8,6 +8,7 @@
 #include "../math/vec3.h"
 #include "../util/direction.h"
 #include "../util/stopwatch.h"
+#include "../util/gl.h"
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
                 enum chunk_type type, struct tilemap *tilemap) {
@@ -24,54 +25,43 @@ void chunk_init(struct chunk *chunk, struct vec3i position,
     chunk->type = type;
     chunk->neighbor_load_count = 0;
     chunk->tilemap = tilemap;
-    dynamic_array_init(&chunk->vertices, sizeof(float));
-    dynamic_array_init(&chunk->indices, sizeof(unsigned int));
+    dynamic_array_init(&chunk->faces, sizeof(struct face));
 
     vao_init(&chunk->vao);
-    bo_init(&chunk->vbo, BO_TYPE_VERTEX);
-    bo_init(&chunk->ibo, BO_TYPE_INDEX);
-
     vao_bind(&chunk->vao);
-    bo_bind(&chunk->vbo);
-    bo_bind(&chunk->ibo);
 
-    vao_attrib(&chunk->vao, 0, 3, VAO_TYPE_FLOAT, false,
-               CHUNK_VERTEX_SIZE * sizeof(float), 0);
-    vao_attrib(&chunk->vao, 1, 2, VAO_TYPE_FLOAT, false,
-               CHUNK_VERTEX_SIZE * sizeof(float), (void *)(3 * sizeof(float)));
-    vao_attrib(&chunk->vao, 2, 3, VAO_TYPE_FLOAT, false,
-               CHUNK_VERTEX_SIZE * sizeof(float), (void *)(5 * sizeof(float)));
-
-    chunk->indices_count = 0;
+    bo_init(&chunk->ssbo, BO_TYPE_STORAGE);
 }
 
 void chunk_destroy(struct chunk *chunk) {
-    bo_destroy(&chunk->ibo);
-    bo_destroy(&chunk->vbo);
     vao_destroy(&chunk->vao);
 
-    dynamic_array_destroy(&chunk->indices);
-    dynamic_array_destroy(&chunk->vertices);
+    dynamic_array_destroy(&chunk->faces);
 
     free(atomic_load(&chunk->blocks));
 }
 
 void chunk_update_buffers(struct chunk *chunk) {
-    unsigned long vbo_size = chunk->vertices.element_count * sizeof(float);
-    unsigned long ibo_size =
-        chunk->indices.element_count * sizeof(unsigned int);
+    bo_bind(&chunk->ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,
+                 sizeof(struct face) * chunk->faces.element_count,
+                 chunk->faces.array, GL_DYNAMIC_DRAW);
 
-    vao_bind(&chunk->vao);
-
-    bo_upload(&chunk->vbo, vbo_size, chunk->vertices.array,
-              BO_USAGE_STATIC_DRAW);
-    bo_upload(&chunk->ibo, ibo_size, chunk->indices.array,
-              BO_USAGE_STATIC_DRAW);
-
-    chunk->indices_count = chunk->indices.element_count;
+    // unsigned long vbo_size = chunk->vertices.element_count * sizeof(float);
+    // unsigned long ibo_size =
+    //     chunk->indices.element_count * sizeof(unsigned int);
+    //
+    // vao_bind(&chunk->vao);
+    //
+    // bo_upload(&chunk->vbo, vbo_size, chunk->vertices.array,
+    //           BO_USAGE_STATIC_DRAW);
+    // bo_upload(&chunk->ibo, ibo_size, chunk->indices.array,
+    //           BO_USAGE_STATIC_DRAW);
+    //
+    // chunk->indices_count = chunk->indices.element_count;
 }
 
-void chunk_draw(struct chunk *chunk) {
+void chunk_draw(struct chunk *chunk, int gl_chunk_position_location) {
     if (!chunk->visible) {
         return;
     }
@@ -79,8 +69,16 @@ void chunk_draw(struct chunk *chunk) {
     tilemap_bind(chunk->tilemap);
     vao_bind(&chunk->vao);
 
-    renderer_draw_elements(DRAW_MODE_TRIANGLES, chunk->indices_count,
-                           INDEX_TYPE_UNSIGNED_INT);
+    bo_bind(&chunk->ssbo);
+    // TODO: Don't use raw opengl calls
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->ssbo.gl_id);
+
+    GL_CALL(glUniform3f(
+        gl_chunk_position_location, chunk->position.x * CHUNK_SIZE_X,
+        chunk->position.y * CHUNK_SIZE_Y, chunk->position.z * CHUNK_SIZE_Z));
+
+    // TODO: Use triangle strip?
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, chunk->faces.element_count);
 }
 
 bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
@@ -153,14 +151,11 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
 }
 
 void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
-    dynamic_array_clear(&chunk->vertices);
-    dynamic_array_clear(&chunk->indices);
+    dynamic_array_clear(&chunk->faces);
 
     struct vec3i chunk_position = vec3i_dot_product(
         chunk->position,
         (struct vec3i){CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z});
-
-    int faces_added = 0;
 
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
@@ -185,49 +180,8 @@ void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
                             chunk->tilemap, block_type_to_texture(type)
                                                 .face_texture_indices[f]);
 
-                    for (int i = 0; i < 4; i++) {
-                        float vertex_position[3] = {
-                            block_position.x +
-                                VERTEX_OFFSETS[FACE_INDICES[f][i]][0],
-                            block_position.y +
-                                VERTEX_OFFSETS[FACE_INDICES[f][i]][1],
-                            block_position.z +
-                                VERTEX_OFFSETS[FACE_INDICES[f][i]][2],
-                        };
-
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &vertex_position[0]);
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &vertex_position[1]);
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &vertex_position[2]);
-
-                        float texture_coordinates[2] = {
-                            texture_rectangle.x + texture_rectangle.width *
-                                                      TEXTURE_COORDINATES[i][0],
-                            texture_rectangle.y + texture_rectangle.height *
-                                                      TEXTURE_COORDINATES[i][1],
-                        };
-
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &texture_coordinates[0]);
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &texture_coordinates[1]);
-
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &FACE_NORMALS[f][0]);
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &FACE_NORMALS[f][1]);
-                        dynamic_array_insert_end(&chunk->vertices,
-                                                 &FACE_NORMALS[f][2]);
-                    }
-
-                    for (int j = 0; j < 6; j++) {
-                        unsigned int index = faces_added * 4 + INDEX_ORDER[j];
-                        dynamic_array_insert_end(&chunk->indices, &index);
-                    }
-
-                    faces_added++;
+                    struct face data = {x, y, z, f};
+                    dynamic_array_insert_end(&chunk->faces, &data);
                 }
             }
         }
