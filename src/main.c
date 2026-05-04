@@ -85,7 +85,7 @@ int main() {
                                2}); // only run when struct window size changed
         hotbar_update_gui(&hotbar);
 
-        printf("%f\n", 1.0 / window_get_delta_time(&window));
+        // printf("%f\n", 1.0 / window_get_delta_time(&window));
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {

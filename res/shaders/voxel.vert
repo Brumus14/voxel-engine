@@ -5,11 +5,7 @@ out vec2 texture_coordinate_frag;
 out vec3 normal_frag;
 
 struct face {
-    uint x;
-    uint y;
-    uint z;
-    uint direction;
-    uint tile_index;
+    uint data;
 };
 
 layout (binding = 0, std430) readonly buffer ssbo {
@@ -57,10 +53,10 @@ const vec2 texture_coordinates[6] = vec2[](
     vec2(0.0, 0.0)
 );
 
-vec2 get_tile_texture_coordinate() {
+vec2 get_tile_texture_coordinate(uint face_tile_index) {
     // TODO: Maybe pass in tile x and y instead of just index
-    uint tile_x = faces[gl_InstanceID].tile_index % tilemap_tiles_width;
-    uint tile_y = faces[gl_InstanceID].tile_index / tilemap_tiles_width;
+    uint tile_x = face_tile_index % tilemap_tiles_width;
+    uint tile_y = face_tile_index / tilemap_tiles_width;
 
     vec2 tile_origin = vec2(tilemap_margin+(tilemap_tile_width + tilemap_spacing) * tile_x, tilemap_margin+(tilemap_tile_height + tilemap_spacing) * tile_y);
     return (tile_origin + texture_coordinates[gl_VertexID] * vec2(tilemap_tile_width, tilemap_tile_height)) / vec2(tilemap_width, tilemap_height);
@@ -90,14 +86,21 @@ void get_position_offset(uint direction, out vec3 offset) {
 }
 
 void main() {
-    vec3 offset;
-    get_position_offset(faces[gl_InstanceID].direction, offset);
+    uint face_data = faces[gl_InstanceID].data;
+    uint face_x = face_data >> 28;
+    uint face_y = (face_data >> 24) & ((1 << 4) - 1);
+    uint face_z = (face_data >> 20) & ((1 << 4) - 1);
+    uint face_direction = (face_data >> 17) & ((1 << 3) - 1);
+    uint face_tile_index = face_data & ((1 << 17) - 1);
 
-    vec3 position = vec3(faces[gl_InstanceID].x, faces[gl_InstanceID].y,faces[gl_InstanceID].z) + vec3(offset) + chunk_position;
+    vec3 offset;
+    get_position_offset(face_direction, offset);
+
+    vec3 position = vec3(face_x, face_y,face_z) + vec3(offset) + chunk_position;
 
     gl_Position = projection * view * model * vec4(position, 1.0);
 
     position_frag = vec3(model * vec4(position, 1.0));
-    texture_coordinate_frag = get_tile_texture_coordinate();
-    normal_frag = normals[faces[gl_InstanceID].direction];
+    texture_coordinate_frag = get_tile_texture_coordinate(face_tile_index);
+    normal_frag = normals[face_direction];
 }

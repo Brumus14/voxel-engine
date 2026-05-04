@@ -7,6 +7,7 @@
 #include "../graphics/tilemap.h"
 #include <pthread.h>
 #include <stdatomic.h>
+#include <stdint.h>
 #include "../data_structures/dynamic_array.h"
 #include "../util/direction.h"
 
@@ -41,11 +42,9 @@ enum chunk_type {
 };
 
 struct face {
-    unsigned int x;
-    unsigned int y;
-    unsigned int z;
-    unsigned int direction;
-    unsigned int tile_index;
+    // 0..3 - x | 4..7 - y | 8..11 - z | 12..14 - direction |
+    // 15..31 - tile_index
+    uint32_t data;
 };
 
 struct chunk {

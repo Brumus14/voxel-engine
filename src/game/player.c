@@ -19,7 +19,7 @@ void player_init(struct player *player, struct vec3d position,
     player->sensitivity = sensitivity;
     player->camera = camera;
     player->sprinting = false;
-    player->flying = false;
+    player->flying = true;
     player->moving = false;
     player->on_ground = false;
 

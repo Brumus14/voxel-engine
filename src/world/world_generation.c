@@ -17,6 +17,10 @@ world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {
     fnl_state height_noise = fnlCreateState();
     height_noise.noise_type = FNL_NOISE_PERLIN;
     height_noise.seed = seed;
+    height_noise.frequency = 0.1;
+    height_noise.octaves = 10;
+    height_noise.lacunarity = 8;
+    height_noise.gain = 0.8;
 
     struct vec3i chunk_block_position;
     vec3i_init(&chunk_block_position, chunk_position.x * CHUNK_SIZE_X,
@@ -33,12 +37,8 @@ world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {
 
                 enum block_type type = BLOCK_TYPE_EMPTY;
 
-                // float height_value =
-                //     fnlGetNoise2D(&height_noise, position.x * 2,
-                //                   position.z * 2) *
-                //     16;
-
-                float height_value = 0;
+                float height_value =
+                    fnlGetNoise2D(&height_noise, position.x, position.z) * 16;
 
                 if (position.y < height_value - 8) {
                     type = BLOCK_TYPE_STONE;

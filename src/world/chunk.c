@@ -175,9 +175,15 @@ void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
                         continue;
                     }
 
-                    struct face data = {x, y, z, f,
-                                        block_get_face_tile_index(type, f)};
-                    dynamic_array_insert_end(&chunk->faces, &data);
+                    struct face new_face;
+
+                    unsigned int tile_index =
+                        block_get_face_tile_index(type, f);
+
+                    new_face.data = (x << 28) | (y << 24) | (z << 20) |
+                                    (f << 17) | tile_index;
+
+                    dynamic_array_insert_end(&chunk->faces, &new_face);
                 }
             }
         }
