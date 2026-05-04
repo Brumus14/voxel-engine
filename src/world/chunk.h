@@ -45,6 +45,7 @@ struct face {
     unsigned int y;
     unsigned int z;
     unsigned int direction;
+    unsigned int tile_index;
 };
 
 struct chunk {

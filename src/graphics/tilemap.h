@@ -8,6 +8,8 @@ struct tilemap {
     struct texture texture;
     int width;
     int height;
+    int tiles_width;
+    int tiles_height;
     int tile_width;
     int tile_height;
     int margin;

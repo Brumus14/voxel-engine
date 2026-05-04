@@ -22,12 +22,17 @@ void player_init(struct player *player, struct vec3d position,
     player->flying = false;
     player->moving = false;
     player->on_ground = false;
+
+    // Initially manage chunks
+    player->manage_chunks = true;
 }
 
 // Rename function
 // dont think framerate independent, need to add in delta time somewhere
 void update_movement(struct player *player, float delta_time,
                      struct world *world) {
+    struct vec3d previous_position = player->position;
+
     struct vec3d independent_velocity =
         vec3d_scalar_multiply(player->velocity, delta_time);
 
@@ -58,8 +63,8 @@ void update_movement(struct player *player, float delta_time,
             for (int z = min_z; z <= max_z; z++) {
                 struct vec3i block_position = {x, y, z};
 
-                if (world_get_block(world, block_position) !=
-                    BLOCK_TYPE_EMPTY) {
+                if (block_is_collidable(
+                        world_get_block(world, block_position))) {
                     x_move = false;
                     break;
                 }
@@ -100,8 +105,8 @@ void update_movement(struct player *player, float delta_time,
             for (int z = min_z; z <= max_z; z++) {
                 struct vec3i block_position = {x, y, z};
 
-                if (world_get_block(world, block_position) !=
-                    BLOCK_TYPE_EMPTY) {
+                if (block_is_collidable(
+                        world_get_block(world, block_position))) {
                     y_move = false;
                     break;
                 }
@@ -142,8 +147,8 @@ void update_movement(struct player *player, float delta_time,
             for (int y = min_y; y <= max_y; y++) {
                 struct vec3i block_position = {x, y, z};
 
-                if (world_get_block(world, block_position) !=
-                    BLOCK_TYPE_EMPTY) {
+                if (block_is_collidable(
+                        world_get_block(world, block_position))) {
                     z_move = false;
                     break;
                 }
@@ -168,6 +173,15 @@ void update_movement(struct player *player, float delta_time,
         max_z =
             ceil(player->position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
             1;
+    }
+
+    if ((int)floor(player->position.x / CHUNK_SIZE_X) !=
+            (int)floor(previous_position.x / CHUNK_SIZE_X) ||
+        (int)floor(player->position.y / CHUNK_SIZE_Y) !=
+            (int)floor(previous_position.y / CHUNK_SIZE_Y) ||
+        (int)floor(player->position.z / CHUNK_SIZE_Z) !=
+            (int)floor(previous_position.z / CHUNK_SIZE_Z)) {
+        player->manage_chunks = true;
     }
 }
 
@@ -199,7 +213,7 @@ bool is_on_ground(struct world *world, struct vec3d position) {
         for (int z = min_z; z <= max_z; z++) {
             struct vec3i block_position = {x, y, z};
 
-            if (world_get_block(world, block_position) != BLOCK_TYPE_EMPTY) {
+            if (block_is_collidable(world_get_block(world, block_position))) {
                 on_ground = true;
                 break;
             }
@@ -361,68 +375,57 @@ void player_update(struct player *player, struct window *window,
     player_manage_chunks(player, world);
 }
 
-struct player_manage_chunks_chunk_context {
-    struct world *world;
-    struct vec3i *player_chunk;
-    int *render_distance;
-};
-
-void player_manage_chunks_chunk(void *key, void *value, void *context) {
-    // TODO: Potentially quite inefficient to do this every time
-    struct vec3i *chunk_position = key;
-    struct chunk *chunk = value;
-
+static inline void
+player_manage_chunks_chunk(struct vec3i player_chunk_position,
+                           struct world *world, struct chunk *chunk) {
     if (atomic_load(&chunk->unloaded) || chunk->type != CHUNK_TYPE_FULL) {
         return;
     }
 
-    struct player_manage_chunks_chunk_context *c = context;
-    struct world *world = c->world;
-    int *render_distance = c->render_distance;
-    struct vec3i *player_chunk = c->player_chunk;
-
-    if (abs(player_chunk->x - chunk->position.x) > *render_distance ||
-        abs(player_chunk->y - chunk->position.y) > *render_distance ||
-        abs(player_chunk->z - chunk->position.z) > *render_distance) {
-        world_unload_chunk(world, *chunk_position);
+    if (abs(player_chunk_position.x - chunk->position.x) > RENDER_DISTANCE ||
+        abs(player_chunk_position.y - chunk->position.y) > RENDER_DISTANCE ||
+        abs(player_chunk_position.z - chunk->position.z) > RENDER_DISTANCE) {
+        world_unload_chunk(world, chunk->position);
     }
 }
 
 void player_manage_chunks(struct player *player, struct world *world) {
-    // if (!player->moved_this_frame) {
-    //     return;
-    // }
+    if (!player->manage_chunks) {
+        return;
+    }
 
-    int render_distance = 6; // move to a variable
-    struct vec3i player_chunk = {
+    player->manage_chunks = false;
+
+    struct vec3i player_chunk_position = {
         floor(player->position.x / CHUNK_SIZE_X),
         floor(player->position.y / CHUNK_SIZE_Y),
         floor(player->position.z / CHUNK_SIZE_Z),
     };
 
     // Lots of unsafe chunk loops
-    struct player_manage_chunks_chunk_context context = {
-        world,
-        &player_chunk,
-        &render_distance,
-    };
 
-    hash_map_for_each(&world->chunks, player_manage_chunks_chunk, &context);
+    unsigned int i = 0;
+    struct hash_map_node *node = NULL;
+
+    while (hash_map_iterate(&world->chunks, &i, &node)) {
+        player_manage_chunks_chunk(player_chunk_position, world, node->value);
+    }
 
     // Move this somewhere better
 
-    for (int z = -render_distance; z <= render_distance; z++) {
-        for (int y = -render_distance; y <= render_distance; y++) {
-            for (int x = -render_distance; x <= render_distance; x++) {
+    for (int z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
+        for (int y = -RENDER_DISTANCE; y <= RENDER_DISTANCE; y++) {
+            for (int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 // Sphere chunk loading
                 // if (sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)) >
-                //     render_distance) {
+                //     RENDER_DISTANCE) {
                 //     continue;
                 // }
 
-                world_load_chunk(world, (struct vec3i){player_chunk.x + x,
-                                                       player_chunk.y + y,
-                                                       player_chunk.z + z});
+                world_load_chunk(world,
+                                 (struct vec3i){player_chunk_position.x + x,
+                                                player_chunk_position.y + y,
+                                                player_chunk_position.z + z});
             }
         }
     }
@@ -438,8 +441,8 @@ bool player_get_target_block(struct player *player, struct world *world,
     struct vec3d ray_origin = player->camera->position;
 
     // If inside block
-    if (world_get_block(world, vec3i_from_vec3d_floor(ray_origin)) !=
-        BLOCK_TYPE_EMPTY) {
+    if (block_is_collidable(
+            world_get_block(world, vec3i_from_vec3d_floor(ray_origin)))) {
         *position_dest = ray_origin;
 
         if (face) {

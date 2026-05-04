@@ -41,5 +41,7 @@ void *hash_map_get(struct hash_map *map, void *key);
 void *hash_map_remove(struct hash_map *map, void *key);
 void hash_map_for_each(struct hash_map *map,
                        hash_map_for_each_function function, void *context);
+bool hash_map_iterate(struct hash_map *map, unsigned int *i,
+                      struct hash_map_node **node);
 
 #endif

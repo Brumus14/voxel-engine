@@ -1,3 +1,4 @@
+Anti-aliasing
 Framerate drops when loading new chunks
 Pack chunk vertex format since not high precision needed
 Falling fast can clip into block

@@ -23,6 +23,8 @@
 #define SPRINTING_FOV 100
 #define FOV_ACCELERATION 10
 
+#define RENDER_DISTANCE 6
+
 #define COLLISION_BOX_X 0.6
 #define COLLISION_BOX_Y 1.8
 #define COLLISION_BOX_Z 0.6
@@ -40,6 +42,7 @@ struct player {
     bool flying;
     bool moving;
     bool on_ground;
+    bool manage_chunks;
     struct stopwatch on_ground_timer;
 };
 

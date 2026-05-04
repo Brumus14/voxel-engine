@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 #include "glad/glad.h"
+#include "log.h"
+
+#if GL_LOGGING == 1
 
 #define GL_CALL(func) \
     func;             \
@@ -14,6 +17,13 @@
         check_gl_error(#func); \
         result;                \
     })
+
+#else
+
+#define GL_CALL(func) func
+#define GL_CALL_R(func, type) func
+
+#endif
 
 static inline void check_gl_error(char *prefix) {
     GLenum error = glGetError();

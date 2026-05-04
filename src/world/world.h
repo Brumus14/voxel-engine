@@ -21,6 +21,14 @@ struct world {
     struct shader_program shader_program;
 
     int gl_chunk_position_location;
+    int gl_tilemap_width_location;
+    int gl_tilemap_height_location;
+    int gl_tilemap_tiles_width_location;
+    int gl_tilemap_tiles_height_location;
+    int gl_tilemap_tile_width_location;
+    int gl_tilemap_tile_height_location;
+    int gl_tilemap_margin_location;
+    int gl_tilemap_spacing_location;
 };
 
 void world_init(struct world *world);

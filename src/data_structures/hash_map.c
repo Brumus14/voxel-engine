@@ -145,3 +145,30 @@ void hash_map_for_each(struct hash_map *map,
         }
     }
 }
+
+bool hash_map_iterate(struct hash_map *map, unsigned int *i,
+                      struct hash_map_node **node) {
+    if (*node) {
+        *node = (*node)->next;
+
+        if (*node) {
+            return true;
+        }
+
+        (*i)++;
+    }
+
+    while (*i < map->bucket_count) {
+        struct hash_map_node *bucket_node = map->buckets[*i];
+
+        if (bucket_node) {
+            *node = bucket_node;
+            return true;
+        }
+
+        (*i)++;
+    }
+
+    *node = NULL;
+    return false;
+}

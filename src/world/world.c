@@ -28,7 +28,7 @@ unsigned int chunks_hash_function(void *key) {
     return hx ^ hy ^ hz;
 }
 
-bool chunks_key_compare_function(void *key_a, void *key_b) {
+static inline bool chunks_key_compare_function(void *key_a, void *key_b) {
     struct vec3i *a = key_a;
     struct vec3i *b = key_b;
 
@@ -55,9 +55,56 @@ void world_init(struct world *world) {
     shader_program_bind_attribute(&world->shader_program, 0, "position");
     shader_program_link(&world->shader_program);
 
+    shader_program_use(&world->shader_program);
+
+    // TODO: Abstract opengl calls
     world->gl_chunk_position_location = GL_CALL_R(
         glGetUniformLocation(world->shader_program.gl_id, "chunk_position"),
         GLint);
+    world->gl_tilemap_width_location = GL_CALL_R(
+        glGetUniformLocation(world->shader_program.gl_id, "tilemap_width"),
+        GLint);
+    world->gl_tilemap_height_location = GL_CALL_R(
+        glGetUniformLocation(world->shader_program.gl_id, "tilemap_height"),
+        GLint);
+    world->gl_tilemap_tiles_width_location =
+        GL_CALL_R(glGetUniformLocation(world->shader_program.gl_id,
+                                       "tilemap_tiles_width"),
+                  GLint);
+    world->gl_tilemap_tiles_height_location =
+        GL_CALL_R(glGetUniformLocation(world->shader_program.gl_id,
+                                       "tilemap_tiles_height"),
+                  GLint);
+    world->gl_tilemap_tile_width_location = GL_CALL_R(
+        glGetUniformLocation(world->shader_program.gl_id, "tilemap_tile_width"),
+        GLint);
+    world->gl_tilemap_tile_height_location =
+        GL_CALL_R(glGetUniformLocation(world->shader_program.gl_id,
+                                       "tilemap_tile_height"),
+                  GLint);
+    world->gl_tilemap_margin_location = GL_CALL_R(
+        glGetUniformLocation(world->shader_program.gl_id, "tilemap_margin"),
+        GLint);
+    world->gl_tilemap_spacing_location = GL_CALL_R(
+        glGetUniformLocation(world->shader_program.gl_id, "tilemap_spacing"),
+        GLint);
+
+    GL_CALL(
+        glUniform1ui(world->gl_tilemap_width_location, world->tilemap.width));
+    GL_CALL(
+        glUniform1ui(world->gl_tilemap_height_location, world->tilemap.height));
+    GL_CALL(glUniform1ui(world->gl_tilemap_tiles_width_location,
+                         world->tilemap.tiles_width));
+    GL_CALL(glUniform1ui(world->gl_tilemap_tiles_height_location,
+                         world->tilemap.tiles_height));
+    GL_CALL(glUniform1ui(world->gl_tilemap_tile_width_location,
+                         world->tilemap.tile_width));
+    GL_CALL(glUniform1ui(world->gl_tilemap_tile_height_location,
+                         world->tilemap.tile_height));
+    GL_CALL(
+        glUniform1ui(world->gl_tilemap_margin_location, world->tilemap.margin));
+    GL_CALL(glUniform1ui(world->gl_tilemap_spacing_location,
+                         world->tilemap.spacing));
 }
 
 void world_destroy(struct world *world) {
@@ -185,18 +232,11 @@ struct world_update_chunk_args {
     struct vec3d player_position;
 };
 
-void world_update_chunk(void *key, void *value, void *arg) {
-    struct vec3i *position = key;
-    struct chunk *chunk = value;
-
-    struct world_update_chunk_args *args = arg;
-    struct world *world = args->world;
-    struct thread_pool *workers = args->workers;
-    struct vec3d player_position = args->player_position;
-
+static inline void world_update_chunk(struct world *world, struct chunk *chunk,
+                                      struct vec3d player_position) {
     if (atomic_load(&chunk->unloaded)) {
         if (atomic_load(&chunk->ref_count) == 0) {
-            dynamic_array_insert_end(&world->unloaded_chunks, position);
+            dynamic_array_insert_end(&world->unloaded_chunks, &chunk->position);
         }
 
         return;
@@ -271,8 +311,8 @@ void world_update_chunk(void *key, void *value, void *arg) {
                 sqrtf(pow(chunk_block_position.x - player_position.x, 2) +
                       pow(chunk_block_position.y - player_position.y, 2) +
                       pow(chunk_block_position.z - player_position.z, 2));
-            thread_pool_schedule(workers, worker_generate_chunk_mesh, args,
-                                 priority);
+            thread_pool_schedule(&world->workers, worker_generate_chunk_mesh,
+                                 args, priority);
 
             WORLD_LOG({
                 printf("Queued mesh ");
@@ -297,9 +337,12 @@ void world_update_chunk(void *key, void *value, void *arg) {
 void world_update(struct world *world, struct vec3d player_position) {
     dynamic_array_clear(&world->unloaded_chunks);
 
-    struct world_update_chunk_args args = {world, &world->workers,
-                                           player_position};
-    hash_map_for_each(&world->chunks, world_update_chunk, &args);
+    unsigned int i = 0;
+    struct hash_map_node *node = NULL;
+
+    while (hash_map_iterate(&world->chunks, &i, &node)) {
+        world_update_chunk(world, node->value, player_position);
+    }
 
     for (unsigned long i = 0; i < world->unloaded_chunks.element_count; i++) {
         struct vec3i *position = dynamic_array_get(&world->unloaded_chunks, i);
@@ -316,25 +359,18 @@ void world_update(struct world *world, struct vec3d player_position) {
     }
 }
 
-void world_draw_chunk(void *key, void *value, void *arg) {
-    // TODO: Surely this parsing every time is inefficient
-    struct vec3i *position = key;
-    struct chunk *chunk = value;
-    int *gl_chunk_position_location = arg;
-
-    chunk_draw(chunk, *gl_chunk_position_location);
-}
-
 void world_prepare_draw(struct world *world) {
     texture_bind(&world->tilemap.texture);
     shader_program_use(&world->shader_program);
 }
 
 void world_draw(struct world *world) {
-    // TODO: Maybe dont use for each instead access internal data for better
-    // performance
-    hash_map_for_each(&world->chunks, world_draw_chunk,
-                      &world->gl_chunk_position_location);
+    unsigned int i = 0;
+    struct hash_map_node *node = NULL;
+
+    while (hash_map_iterate(&world->chunks, &i, &node)) {
+        chunk_draw(node->value, world->gl_chunk_position_location);
+    }
 }
 
 // use mipmapping

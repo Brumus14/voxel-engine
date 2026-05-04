@@ -175,12 +175,8 @@ void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
                         continue;
                     }
 
-                    struct rectangle texture_rectangle =
-                        tilemap_get_tile_rectangle(
-                            chunk->tilemap, block_type_to_texture(type)
-                                                .face_texture_indices[f]);
-
-                    struct face data = {x, y, z, f};
+                    struct face data = {x, y, z, f,
+                                        block_get_face_tile_index(type, f)};
                     dynamic_array_insert_end(&chunk->faces, &data);
                 }
             }
