@@ -135,7 +135,7 @@ void camera_update_matrix_uniforms(struct camera *camera) {
                                (float *)camera->projection_matrix));
 
     // should this be moved somewhere else?
-    mat4 model_matrix = GLM_MAT4_IDENTITY;
+    mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
     GLint model_loc = GL_CALL(glGetUniformLocation(shader_program_id, "model"));
     GL_CALL(glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model_matrix));
 

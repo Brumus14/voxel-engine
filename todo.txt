@@ -1,3 +1,5 @@
+when world load chunk add to queue and load x per update to avoid fps spike
+player manage chunks causes lagging
 Anti-aliasing
 Framerate drops when loading new chunks
 Pack chunk vertex format since not high precision needed

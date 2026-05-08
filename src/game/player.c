@@ -417,8 +417,8 @@ void player_manage_chunks(struct player *player, struct world *world) {
         for (int y = -RENDER_DISTANCE; y <= RENDER_DISTANCE; y++) {
             for (int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 // Sphere chunk loading
-                // if (sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)) >
-                //     RENDER_DISTANCE) {
+                // if (pow(x, 2) + pow(y, 2) + pow(z, 2) >
+                //     pow(RENDER_DISTANCE, 2)) {
                 //     continue;
                 // }
 

@@ -226,12 +226,6 @@ bool get_chunk_neighbors(struct world *world, struct vec3i position,
     return true;
 }
 
-struct world_update_chunk_args {
-    struct world *world;
-    struct thread_pool *workers;
-    struct vec3d player_position;
-};
-
 static inline void world_update_chunk(struct world *world, struct chunk *chunk,
                                       struct vec3d player_position) {
     if (atomic_load(&chunk->unloaded)) {
