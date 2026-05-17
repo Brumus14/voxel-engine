@@ -1,8 +1,24 @@
 cmake_minimum_required(VERSION 4.3)
 
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
+if(LINUX OR APPLE)
+    set(POSIX TRUE)
+endif()
+
 project(voxel_engine C)
 
 file(GLOB_RECURSE SRC_FILES src/*.c)
+
+if(POSIX)
+list(APPEND SRC_FILES 
+    src/threads/posix/mutex.c
+    src/threads/posix/condition.c
+)
+endif()
+
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 add_subdirectory(lib/glfw)

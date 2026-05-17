@@ -28,23 +28,24 @@ world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {
                chunk_position.z * CHUNK_SIZE_Z);
 
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-        for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-            for (int x = 0; x < CHUNK_SIZE_X; x++) {
-                struct vec3i position;
-                vec3i_init(&position, chunk_block_position.x + x,
-                           chunk_block_position.y + y,
-                           chunk_block_position.z + z);
+        int position_z = chunk_block_position.z + z;
+
+        for (int x = 0; x < CHUNK_SIZE_X; x++) {
+            int position_x = chunk_block_position.x + x;
+
+            float height_value =
+                fnlGetNoise2D(&height_noise, position_x, position_z) * 16;
+
+            for (int y = 0; y < CHUNK_SIZE_Y; y++) {
+                int position_y = chunk_block_position.y + y;
 
                 enum block_type type = BLOCK_TYPE_EMPTY;
 
-                float height_value =
-                    fnlGetNoise2D(&height_noise, position.x, position.z) * 16;
-
-                if (position.y < height_value - 8) {
+                if (position_y < height_value - 8) {
                     type = BLOCK_TYPE_STONE;
-                } else if (position.y < height_value) {
+                } else if (position_y < height_value) {
                     type = BLOCK_TYPE_DIRT;
-                } else if (position.y == ceil(height_value)) {
+                } else if (position_y == ceil(height_value)) {
                     type = BLOCK_TYPE_GRASS;
                 }
 

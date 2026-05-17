@@ -2,6 +2,7 @@
 #define THREAD_POOL_H
 
 #include "../data_structures/priority_queue.h"
+#include "../threads/threads.h"
 #include <pthread.h>
 #include <unistd.h>
 
@@ -16,8 +17,9 @@ struct thread_pool {
     unsigned int thread_count;
     pthread_t *threads;
     struct priority_queue tasks;
-    pthread_mutex_t tasks_lock;
-    pthread_cond_t task_available;
+    // pthread_mutex_t tasks_lock;
+    struct mutex tasks_lock;
+    struct condition task_available;
 };
 
 void *thread_pool_task_main(void *arg);
