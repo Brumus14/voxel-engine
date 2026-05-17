@@ -8,7 +8,7 @@
 #include "../graphics/tilemap.h"
 #include "chunk.h"
 
-#define WORLD_WORKER_COUNT 1
+#define WORLD_WORKER_COUNT 2
 #define CHUNKS_BUCKET_COUNT 1024
 
 struct world {

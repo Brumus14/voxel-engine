@@ -16,6 +16,7 @@ if(POSIX)
 list(APPEND SRC_FILES 
     src/threads/posix/mutex.c
     src/threads/posix/condition.c
+    src/threads/posix/thread.c
 )
 endif()
 

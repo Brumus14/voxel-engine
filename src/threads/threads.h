@@ -3,5 +3,6 @@
 
 #include "mutex.h"
 #include "condition.h"
+#include "thread.h"
 
 #endif

@@ -42,13 +42,13 @@ void thread_pool_init(struct thread_pool *pool, unsigned int count) {
     pool->threads = malloc(sizeof(pthread_t) * count);
 
     for (unsigned int i = 0; i < count; i++) {
-        pthread_create(&pool->threads[i], NULL, thread_pool_thread_main, pool);
+        thread_create(&pool->threads[i], thread_pool_thread_main, pool);
     }
 }
 
 void thread_pool_destroy(struct thread_pool *pool) {
     for (unsigned int i = 0; i < pool->thread_count; i++) {
-        pthread_cancel(pool->threads[i]);
+        thread_cancel(&pool->threads[i]);
     }
 
     free(pool->threads);
