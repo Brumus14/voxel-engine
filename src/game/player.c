@@ -256,11 +256,11 @@ void player_update_movement(struct player *player, struct window *window,
         input.y -= 1;
     }
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_S)) {
+    if (keyboard_key_down(&window->keyboard, KEYCODE_W)) {
         input.z += 1;
     }
 
-    if (keyboard_key_down(&window->keyboard, KEYCODE_W)) {
+    if (keyboard_key_down(&window->keyboard, KEYCODE_S)) {
         input.z -= 1;
     }
 
@@ -285,19 +285,18 @@ void player_update_movement(struct player *player, struct window *window,
     struct vec3d target_velocity = VEC3D_ZERO;
 
     struct vec3d up = (struct vec3d){0, 1, 0};
-    struct vec3d forwards =
-        vec3d_scalar_multiply(rotation_to_direction(player->rotation), -1);
+    struct vec3d forward = rotation_to_direction(player->rotation);
 
-    // Remove forwards vertical component
-    forwards.y = 0;
-    vec3d_normalise(&forwards);
+    // Remove forward vertical component
+    forward.y = 0;
+    vec3d_normalise(&forward);
 
-    struct vec3d right = vec3d_cross_product(up, forwards);
+    struct vec3d right = vec3d_cross_product(forward, up);
 
     vec3d_add_to(target_velocity, vec3d_scalar_multiply(right, input.x),
                  &target_velocity);
 
-    vec3d_add_to(target_velocity, vec3d_scalar_multiply(forwards, input.z),
+    vec3d_add_to(target_velocity, vec3d_scalar_multiply(forward, input.z),
                  &target_velocity);
 
     vec3d_normalise(&target_velocity);

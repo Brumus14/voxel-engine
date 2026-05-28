@@ -15,8 +15,8 @@ struct thread {
 #elif PLATFORM_WINDOWS
 #include <windows.h>
 
-struct mutex {
-    HANDLE mutex;
+struct thread {
+    HANDLE handle;
 };
 #endif
 

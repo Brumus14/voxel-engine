@@ -29,8 +29,9 @@ struct vec3d vec3d_scalar_multiply(struct vec3d v, double scalar);
 void vec3d_cross_product_to(struct vec3d v1, struct vec3d v2,
                             struct vec3d *dest);
 struct vec3d vec3d_cross_product(struct vec3d v1, struct vec3d v2);
-void vec3d_dot_product_to(struct vec3d v1, struct vec3d v2, struct vec3d *dest);
-struct vec3d vec3d_dot_product(struct vec3d v1, struct vec3d v2);
+void vec3d_product_to(struct vec3d v1, struct vec3d v2, struct vec3d *dest);
+struct vec3d vec3d_product(struct vec3d v1, struct vec3d v2);
+double vec3d_dot_product(struct vec3d v1, struct vec3d v2);
 bool vec3d_equal(struct vec3d v1, struct vec3d v2);
 
 #endif

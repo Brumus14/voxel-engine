@@ -13,7 +13,6 @@
 #include "chunk.h"
 #include "block.h"
 #include "worker.h"
-#include "../util/direction.h"
 #include "../util/log.h"
 #include "../util/direction.h"
 #include "../util/gl.h"
@@ -237,9 +236,9 @@ static inline void world_update_chunk(struct world *world, struct chunk *chunk,
     }
 
     // Maybe move this inside chunk
-    struct vec3i chunk_block_position = vec3i_dot_product(
-        chunk->position,
-        (struct vec3i){CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z});
+    struct vec3i chunk_block_position =
+        vec3i_product(chunk->position,
+                      (struct vec3i){CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z});
 
     enum chunk_blocks_state expected_blocks_state;
     enum chunk_mesh_state expected_mesh_state;
@@ -358,13 +357,33 @@ void world_prepare_draw(struct world *world) {
     shader_program_use(&world->shader_program);
 }
 
-void world_draw(struct world *world) {
+int c = 0;
+void world_draw(struct world *world, struct camera *camera) {
+    c = 0;
     unsigned int i = 0;
     struct hash_map_node *node = NULL;
 
     while (hash_map_iterate(&world->chunks, &i, &node)) {
-        chunk_draw(node->value, world->gl_chunk_position_location);
+        struct chunk *chunk = node->value;
+
+        struct vec3d chunk_size = {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z};
+        struct vec3d chunk_position =
+            vec3d_product(vec3d_from_vec3i(chunk->position), chunk_size);
+        struct vec3d chunk_center =
+            vec3d_add(chunk_position, vec3d_scalar_multiply(chunk_size, 0.5));
+
+        if (!camera_is_sphere_in_frustum(camera, chunk_center,
+                                         sqrt(pow(CHUNK_SIZE_X, 2) +
+                                              pow(CHUNK_SIZE_Y, 2) +
+                                              pow(CHUNK_SIZE_Z, 2)))) {
+            continue;
+        }
+
+        c++;
+        chunk_draw(chunk, world->gl_chunk_position_location);
     }
+
+    printf("%d\n", c);
 }
 
 // use mipmapping

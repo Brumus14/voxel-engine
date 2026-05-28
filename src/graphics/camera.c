@@ -3,6 +3,8 @@
 #include "glad/glad.h"
 #include "../util/gl.h"
 #include "../math/math_util.h"
+#include <math.h>
+#include <stdio.h>
 
 // use frustum culling
 void generate_perspective_matrix(struct camera *camera) {
@@ -52,20 +54,7 @@ void camera_init(struct camera *camera, struct vec3d position,
 
     generate_view_matrix(camera);
     generate_perspective_matrix(camera);
-}
-
-struct Frustum camera_get_frustum(struct camera *camera) {
-    struct Frustum frustum;
-    double half_vertical = camera->far_plane_distance * tan(camera->fov / 2);
-    double half_horizontal = half_vertical * camera->aspect_ratio;
-
-    struct vec3d direction = camera_get_direction(camera);
-
-    frustum.near_plane = (struct Plane){direction, camera->near_plane_distance};
-    frustum.far_plane = (struct Plane){vec3d_scalar_multiply(direction, -1),
-                                       camera->far_plane_distance};
-
-    return frustum;
+    camera_update_frustum(camera);
 }
 
 struct vec3d camera_get_direction(struct camera *camera) {
@@ -74,6 +63,7 @@ struct vec3d camera_get_direction(struct camera *camera) {
 
 void camera_set_position(struct camera *camera, struct vec3d position) {
     camera->position = position;
+    camera_update_frustum(camera);
 }
 
 // Relative to rotation
@@ -91,7 +81,7 @@ void camera_move(struct camera *camera, struct vec3d movement_delta) {
     vec3d_normalise(&forwards);
 
     position_delta = vec3d_add(
-        position_delta, vec3d_scalar_multiply(forwards, -movement_delta.z));
+        position_delta, vec3d_scalar_multiply(forwards, movement_delta.z));
 
     struct vec3d up;
     vec3d_init(&up, 0.0, 1.0, 0.0);
@@ -107,6 +97,7 @@ void camera_move(struct camera *camera, struct vec3d movement_delta) {
     camera->position = vec3d_add(camera->position, position_delta);
 
     generate_view_matrix(camera);
+    camera_update_frustum(camera);
 }
 
 void camera_update_matrix_uniforms(struct camera *camera) {
@@ -155,6 +146,7 @@ void camera_set_aspect_ratio(struct camera *camera, double aspect_ratio) {
     camera->aspect_ratio = aspect_ratio;
 
     generate_perspective_matrix(camera);
+    camera_update_frustum(camera);
 }
 
 void camera_set_rotation(struct camera *camera, struct vec3d rotation) {
@@ -166,6 +158,7 @@ void camera_set_rotation(struct camera *camera, struct vec3d rotation) {
     camera->rotation = rotation;
 
     generate_view_matrix(camera);
+    camera_update_frustum(camera);
 }
 
 void camera_set_fov(struct camera *camera, double fov) {
@@ -177,6 +170,7 @@ void camera_set_fov(struct camera *camera, double fov) {
     camera->fov = fov;
 
     generate_perspective_matrix(camera);
+    camera_update_frustum(camera);
 }
 
 void camera_rotate(struct camera *camera, struct vec3d rotation_delta) {
@@ -192,4 +186,36 @@ void camera_rotate(struct camera *camera, struct vec3d rotation_delta) {
 
 void camera_prepare_draw(struct camera *camera) {
     camera_update_matrix_uniforms(camera);
+}
+
+void camera_update_frustum(struct camera *camera) {
+    struct vec3d up = (struct vec3d){0, 1, 0};
+    struct vec3d forward = camera_get_direction(camera);
+    struct vec3d right = vec3d_cross_product(forward, up);
+
+    float half_v_side = camera->far_plane_distance * tanf(camera->fov + 0.5);
+    float half_h_side = half_v_side * camera->aspect_ratio;
+
+    camera->frustum.near_plane = (struct plane){
+        forward,
+        vec3d_dot_product(vec3d_add(camera->position,
+                                    vec3d_scalar_multiply(
+                                        forward, camera->near_plane_distance)),
+                          forward)};
+
+    camera->frustum.far_plane = (struct plane){
+        vec3d_scalar_multiply(forward, -1),
+        vec3d_dot_product(
+            vec3d_add(camera->position, vec3d_scalar_multiply(forward, 1)),
+            forward)};
+}
+
+bool camera_is_sphere_in_frustum(struct camera *camera, struct vec3d center,
+                                 float radius) {
+    return vec3d_dot_product(camera->frustum.near_plane.normal, center) -
+                   camera->frustum.near_plane.distance >
+               -radius &&
+           vec3d_dot_product(camera->frustum.far_plane.normal, center) -
+                   camera->frustum.far_plane.distance >
+               -radius;
 }

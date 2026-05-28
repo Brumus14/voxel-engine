@@ -100,19 +100,22 @@ struct vec3d vec3d_cross_product(struct vec3d v1, struct vec3d v2) {
     return result;
 }
 
-void vec3d_dot_product_to(struct vec3d v1, struct vec3d v2,
-                          struct vec3d *dest) {
+void vec3d_product_to(struct vec3d v1, struct vec3d v2, struct vec3d *dest) {
     dest->x = v1.x * v2.x;
     dest->y = v1.y * v2.y;
     dest->z = v1.z * v2.z;
 }
 
-struct vec3d vec3d_dot_product(struct vec3d v1, struct vec3d v2) {
+struct vec3d vec3d_product(struct vec3d v1, struct vec3d v2) {
     struct vec3d result;
 
-    vec3d_dot_product_to(v1, v2, &result);
+    vec3d_product_to(v1, v2, &result);
 
     return result;
+}
+
+double vec3d_dot_product(struct vec3d v1, struct vec3d v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 bool vec3d_equal(struct vec3d v1, struct vec3d v2) {

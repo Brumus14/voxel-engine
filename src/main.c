@@ -85,7 +85,7 @@ int main() {
                                2}); // only run when struct window size changed
         hotbar_update_gui(&hotbar);
 
-        printf("%f\n", 1.0 / window_get_delta_time(&window));
+        // printf("%f\n", 1.0 / window_get_delta_time(&window));
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {
@@ -164,7 +164,7 @@ int main() {
         camera_prepare_draw(&camera);
 
         world_update(&world, player.position);
-        world_draw(&world);
+        world_draw(&world, &camera);
 
         renderer_clear_depth_buffer();
         gui_draw(&gui);

@@ -27,3 +27,11 @@ struct vec3i vec3i_from_vec3f_floor(struct vec3f v) {
         floor(v.z),
     };
 }
+
+struct vec3d vec3d_from_vec3i(struct vec3i v) {
+    return (struct vec3d){
+        v.x,
+        v.y,
+        v.z,
+    };
+}

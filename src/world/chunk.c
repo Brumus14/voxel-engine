@@ -3,6 +3,7 @@
 #include "block.h"
 #include "string.h"
 #include <stdatomic.h>
+#include <stdio.h>
 #include <threads.h>
 #include <unistd.h>
 #include "../math/vec3.h"
@@ -153,9 +154,9 @@ bool is_block_face_active(struct chunk *chunk, struct chunk **neighbors,
 void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
     dynamic_array_clear(&chunk->faces);
 
-    struct vec3i chunk_position = vec3i_dot_product(
-        chunk->position,
-        (struct vec3i){CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z});
+    struct vec3i chunk_position =
+        vec3i_product(chunk->position,
+                      (struct vec3i){CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z});
 
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
