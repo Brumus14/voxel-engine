@@ -6,7 +6,6 @@
 #include <math.h>
 #include <stdio.h>
 
-// use frustum culling
 void generate_perspective_matrix(struct camera *camera) {
     if (!camera) {
         fprintf(stderr, "generate_perspective_matrix: struct camera is null\n");
@@ -198,16 +197,20 @@ void camera_update_frustum(struct camera *camera) {
 
     camera->frustum.near_plane = (struct plane){
         forward,
-        vec3d_dot_product(vec3d_add(camera->position,
-                                    vec3d_scalar_multiply(
-                                        forward, camera->near_plane_distance)),
-                          forward)};
+        camera->near_plane_distance +
+            vec3d_dot_product(camera->position, forward),
+    };
 
     camera->frustum.far_plane = (struct plane){
-        vec3d_scalar_multiply(forward, -1),
-        vec3d_dot_product(
-            vec3d_add(camera->position, vec3d_scalar_multiply(forward, 1)),
-            forward)};
+        vec3d_scalar_multiply(forward, 1),
+        camera->far_plane_distance +
+            vec3d_dot_product(camera->position, forward),
+    };
+
+    camera->frustum.left_plane = (struct plane){
+        vec3d_cross_product(forward, (struct vec3d){0, 1, 0}),
+        10 + vec3d_dot_product(camera->position, right),
+    };
 }
 
 bool camera_is_sphere_in_frustum(struct camera *camera, struct vec3d center,
@@ -216,6 +219,9 @@ bool camera_is_sphere_in_frustum(struct camera *camera, struct vec3d center,
                    camera->frustum.near_plane.distance >
                -radius &&
            vec3d_dot_product(camera->frustum.far_plane.normal, center) -
-                   camera->frustum.far_plane.distance >
+                   camera->frustum.far_plane.distance <
+               -radius &&
+           vec3d_dot_product(camera->frustum.left_plane.normal, center) -
+                   camera->frustum.left_plane.distance >
                -radius;
 }
