@@ -6,18 +6,13 @@
 #include "../math/cuboid.h"
 
 // create custom matrix4 implementation
-struct plane {
-    struct vec3d normal;
-    double distance;
-};
-
 struct frustum {
-    struct plane top_plane;
-    struct plane bottom_plane;
-    struct plane right_plane;
-    struct plane left_plane;
-    struct plane far_plane;
-    struct plane near_plane;
+    float top_plane[4];
+    float bottom_plane[4];
+    float right_plane[4];
+    float left_plane[4];
+    float far_plane[4];
+    float near_plane[4];
 };
 
 struct camera {

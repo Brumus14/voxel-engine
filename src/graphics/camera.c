@@ -1,10 +1,26 @@
 #include "camera.h"
 
+#include "cglm/mat4.h"
 #include "glad/glad.h"
 #include "../util/gl.h"
 #include "../math/math_util.h"
 #include <math.h>
 #include <stdio.h>
+
+void plane_normalise(float *plane) {
+    float magnitude =
+        sqrt(pow(plane[0], 2) + pow(plane[1], 2) + pow(plane[2], 2));
+
+    plane[0] /= magnitude;
+    plane[1] /= magnitude;
+    plane[2] /= magnitude;
+    plane[3] /= magnitude;
+}
+
+float plane_distance(float *plane, struct vec3d point) {
+    return plane[0] * point.x + plane[1] * point.y + plane[2] * point.z +
+           plane[3];
+}
 
 void generate_perspective_matrix(struct camera *camera) {
     if (!camera) {
@@ -188,40 +204,86 @@ void camera_prepare_draw(struct camera *camera) {
 }
 
 void camera_update_frustum(struct camera *camera) {
-    struct vec3d up = (struct vec3d){0, 1, 0};
     struct vec3d forward = camera_get_direction(camera);
-    struct vec3d right = vec3d_cross_product(forward, up);
+    struct vec3d right =
+        vec3d_normalised(vec3d_cross_product(forward, (struct vec3d){0, 1, 0}));
+    struct vec3d up = vec3d_normalised(vec3d_cross_product(right, forward));
 
-    float half_v_side = camera->far_plane_distance * tanf(camera->fov + 0.5);
+    float half_v_side =
+        tan(camera->fov / 2 * (M_PI / 180)) * camera->far_plane_distance;
     float half_h_side = half_v_side * camera->aspect_ratio;
 
-    camera->frustum.near_plane = (struct plane){
-        forward,
-        camera->near_plane_distance +
-            vec3d_dot_product(camera->position, forward),
-    };
+    mat4 clipping_matrix;
+    glm_mat4_mul(camera->projection_matrix, camera->view_matrix,
+                 clipping_matrix);
 
-    camera->frustum.far_plane = (struct plane){
-        vec3d_scalar_multiply(forward, 1),
-        camera->far_plane_distance +
-            vec3d_dot_product(camera->position, forward),
-    };
+    camera->frustum.left_plane[0] =
+        clipping_matrix[0][3] + clipping_matrix[0][0];
+    camera->frustum.left_plane[1] =
+        clipping_matrix[1][3] + clipping_matrix[1][0];
+    camera->frustum.left_plane[2] =
+        clipping_matrix[2][3] + clipping_matrix[2][0];
+    camera->frustum.left_plane[3] =
+        clipping_matrix[3][3] + clipping_matrix[3][0];
+    plane_normalise(camera->frustum.left_plane);
 
-    camera->frustum.left_plane = (struct plane){
-        vec3d_cross_product(forward, (struct vec3d){0, 1, 0}),
-        10 + vec3d_dot_product(camera->position, right),
-    };
+    camera->frustum.right_plane[0] =
+        clipping_matrix[0][3] - clipping_matrix[0][0];
+    camera->frustum.right_plane[1] =
+        clipping_matrix[1][3] - clipping_matrix[1][0];
+    camera->frustum.right_plane[2] =
+        clipping_matrix[2][3] - clipping_matrix[2][0];
+    camera->frustum.right_plane[3] =
+        clipping_matrix[3][3] - clipping_matrix[3][0];
+    plane_normalise(camera->frustum.right_plane);
+
+    camera->frustum.bottom_plane[0] =
+        clipping_matrix[0][3] + clipping_matrix[0][1];
+    camera->frustum.bottom_plane[1] =
+        clipping_matrix[1][3] + clipping_matrix[1][1];
+    camera->frustum.bottom_plane[2] =
+        clipping_matrix[2][3] + clipping_matrix[2][1];
+    camera->frustum.bottom_plane[3] =
+        clipping_matrix[3][3] + clipping_matrix[3][1];
+    plane_normalise(camera->frustum.bottom_plane);
+
+    camera->frustum.top_plane[0] =
+        clipping_matrix[0][3] - clipping_matrix[0][1];
+    camera->frustum.top_plane[1] =
+        clipping_matrix[1][3] - clipping_matrix[1][1];
+    camera->frustum.top_plane[2] =
+        clipping_matrix[2][3] - clipping_matrix[2][1];
+    camera->frustum.top_plane[3] =
+        clipping_matrix[3][3] - clipping_matrix[3][1];
+    plane_normalise(camera->frustum.top_plane);
+
+    camera->frustum.near_plane[0] =
+        clipping_matrix[0][3] + clipping_matrix[0][2];
+    camera->frustum.near_plane[1] =
+        clipping_matrix[1][3] + clipping_matrix[1][2];
+    camera->frustum.near_plane[2] =
+        clipping_matrix[2][3] + clipping_matrix[2][2];
+    camera->frustum.near_plane[3] =
+        clipping_matrix[3][3] + clipping_matrix[3][2];
+    plane_normalise(camera->frustum.near_plane);
+
+    camera->frustum.far_plane[0] =
+        clipping_matrix[0][3] - clipping_matrix[0][2];
+    camera->frustum.far_plane[1] =
+        clipping_matrix[1][3] - clipping_matrix[1][2];
+    camera->frustum.far_plane[2] =
+        clipping_matrix[2][3] - clipping_matrix[2][2];
+    camera->frustum.far_plane[3] =
+        clipping_matrix[3][3] - clipping_matrix[3][2];
+    plane_normalise(camera->frustum.far_plane);
 }
 
 bool camera_is_sphere_in_frustum(struct camera *camera, struct vec3d center,
                                  float radius) {
-    return vec3d_dot_product(camera->frustum.near_plane.normal, center) -
-                   camera->frustum.near_plane.distance >
-               -radius &&
-           vec3d_dot_product(camera->frustum.far_plane.normal, center) -
-                   camera->frustum.far_plane.distance <
-               -radius &&
-           vec3d_dot_product(camera->frustum.left_plane.normal, center) -
-                   camera->frustum.left_plane.distance >
-               -radius;
+    return plane_distance(camera->frustum.left_plane, center) > -radius &&
+           plane_distance(camera->frustum.right_plane, center) > -radius &&
+           plane_distance(camera->frustum.bottom_plane, center) > -radius &&
+           plane_distance(camera->frustum.top_plane, center) > -radius &&
+           plane_distance(camera->frustum.near_plane, center) > -radius &&
+           plane_distance(camera->frustum.far_plane, center) > -radius;
 }

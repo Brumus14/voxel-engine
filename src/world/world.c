@@ -357,9 +357,7 @@ void world_prepare_draw(struct world *world) {
     shader_program_use(&world->shader_program);
 }
 
-int c = 0;
 void world_draw(struct world *world, struct camera *camera) {
-    c = 0;
     unsigned int i = 0;
     struct hash_map_node *node = NULL;
 
@@ -379,11 +377,8 @@ void world_draw(struct world *world, struct camera *camera) {
             continue;
         }
 
-        c++;
         chunk_draw(chunk, world->gl_chunk_position_location);
     }
-
-    printf("%d\n", c);
 }
 
 // use mipmapping
