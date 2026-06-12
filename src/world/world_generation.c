@@ -7,6 +7,17 @@ static inline int block_index(int x, int y, int z) {
     return z * CHUNK_SIZE_Y * CHUNK_SIZE_X + y * CHUNK_SIZE_X + x;
 }
 
+void upscale_noise(double *output[CHUNK_SIZE_Z][CHUNK_SIZE_X], fnl_state noise,
+                   unsigned int level) {
+    unsigned int step = pow(level, 2);
+
+    malloc(CHUNK_SIZE_Z / level * CHUNK_SIZE_X / level * sizeof(double));
+
+    for (int y = 0; y < CHUNK_SIZE_Z; y += step) {
+        fnlGetNoise2D(noise, );
+    }
+}
+
 // TODO: This is very messy
 _Atomic(enum block_type) *
 world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {

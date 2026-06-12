@@ -22,7 +22,7 @@ float plane_distance(float *plane, struct vec3d point) {
            plane[3];
 }
 
-void generate_perspective_matrix(struct camera *camera) {
+void generate_projection_matrix(struct camera *camera) {
     if (!camera) {
         fprintf(stderr, "generate_perspective_matrix: struct camera is null\n");
         return;
@@ -31,6 +31,8 @@ void generate_perspective_matrix(struct camera *camera) {
     glm_perspective(glm_rad(camera->fov), camera->aspect_ratio,
                     camera->near_plane_distance, camera->far_plane_distance,
                     camera->projection_matrix);
+
+    camera->projection_matrix_stale = false;
 }
 
 void generate_view_matrix(struct camera *camera) {
@@ -47,6 +49,8 @@ void generate_view_matrix(struct camera *camera) {
 
     glm_look(glm_position, glm_direction, (vec3){0.0, 1.0, 0.0},
              camera->view_matrix);
+
+    camera->view_matrix_stale = false;
 }
 
 void camera_init(struct camera *camera, struct vec3d position,
@@ -66,10 +70,11 @@ void camera_init(struct camera *camera, struct vec3d position,
     camera->aspect_ratio = aspect_ratio;
     camera->near_plane_distance = near_plane_distance;
     camera->far_plane_distance = far_plane_distance;
-
-    generate_view_matrix(camera);
-    generate_perspective_matrix(camera);
-    camera_update_frustum(camera);
+    glm_mat4_zero(camera->view_matrix);
+    glm_mat4_zero(camera->projection_matrix);
+    camera->view_matrix_stale = true;
+    camera->projection_matrix_stale = true;
+    glm_mat4_zero(camera->view_projection_matrix);
 }
 
 struct vec3d camera_get_direction(struct camera *camera) {
@@ -78,7 +83,7 @@ struct vec3d camera_get_direction(struct camera *camera) {
 
 void camera_set_position(struct camera *camera, struct vec3d position) {
     camera->position = position;
-    camera_update_frustum(camera);
+    camera->view_matrix_stale = true;
 }
 
 // Relative to rotation
@@ -110,9 +115,7 @@ void camera_move(struct camera *camera, struct vec3d movement_delta) {
     position_delta.y += movement_delta.y;
 
     camera->position = vec3d_add(camera->position, position_delta);
-
-    generate_view_matrix(camera);
-    camera_update_frustum(camera);
+    camera->view_matrix_stale = true;
 }
 
 void camera_update_matrix_uniforms(struct camera *camera) {
@@ -127,22 +130,19 @@ void camera_update_matrix_uniforms(struct camera *camera) {
     GLint shader_program_id;
     GL_CALL(glGetIntegerv(GL_CURRENT_PROGRAM, &shader_program_id));
 
-    GLint view_loc =
-        GL_CALL_R(glGetUniformLocation(shader_program_id, "view"), GLint);
+    GLint view_projection_loc = GL_CALL_R(
+        glGetUniformLocation(shader_program_id, "view_projection_matrix"),
+        GLint);
 
     GL_CALL(glUniformMatrix4fv(
-        view_loc, 1, GL_FALSE,
-        (float *)camera->view_matrix)); // reduce casting for performance
-
-    GLint projection_loc =
-        GL_CALL_R(glGetUniformLocation(shader_program_id, "projection"), GLint);
-
-    GL_CALL(glUniformMatrix4fv(projection_loc, 1, GL_FALSE,
-                               (float *)camera->projection_matrix));
+        view_projection_loc, 1, GL_FALSE,
+        (float *)
+            camera->view_projection_matrix)); // reduce casting for performance
 
     // should this be moved somewhere else?
     mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
-    GLint model_loc = GL_CALL(glGetUniformLocation(shader_program_id, "model"));
+    GLint model_loc =
+        GL_CALL(glGetUniformLocation(shader_program_id, "model_matrix"));
     GL_CALL(glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model_matrix));
 
     GLint camera_position_loc = GL_CALL_R(
@@ -159,9 +159,7 @@ void camera_set_aspect_ratio(struct camera *camera, double aspect_ratio) {
     }
 
     camera->aspect_ratio = aspect_ratio;
-
-    generate_perspective_matrix(camera);
-    camera_update_frustum(camera);
+    camera->projection_matrix_stale = true;
 }
 
 void camera_set_rotation(struct camera *camera, struct vec3d rotation) {
@@ -171,9 +169,7 @@ void camera_set_rotation(struct camera *camera, struct vec3d rotation) {
     }
 
     camera->rotation = rotation;
-
-    generate_view_matrix(camera);
-    camera_update_frustum(camera);
+    camera->view_matrix_stale = true;
 }
 
 void camera_set_fov(struct camera *camera, double fov) {
@@ -183,9 +179,7 @@ void camera_set_fov(struct camera *camera, double fov) {
     }
 
     camera->fov = fov;
-
-    generate_perspective_matrix(camera);
-    camera_update_frustum(camera);
+    camera->projection_matrix_stale = true;
 }
 
 void camera_rotate(struct camera *camera, struct vec3d rotation_delta) {
@@ -195,12 +189,28 @@ void camera_rotate(struct camera *camera, struct vec3d rotation_delta) {
     }
 
     struct vec3d new_rotation = vec3d_add(camera->rotation, rotation_delta);
-
     camera_set_rotation(camera, new_rotation);
 }
 
-void camera_prepare_draw(struct camera *camera) {
-    camera_update_matrix_uniforms(camera);
+void camera_update(struct camera *camera) {
+    bool view_projection_matrix_stale = false;
+
+    if (camera->view_matrix_stale) {
+        generate_view_matrix(camera);
+        view_projection_matrix_stale = true;
+    }
+
+    if (camera->projection_matrix_stale) {
+        generate_projection_matrix(camera);
+        view_projection_matrix_stale = true;
+    }
+
+    if (view_projection_matrix_stale) {
+        glm_mat4_mul(camera->projection_matrix, camera->view_matrix,
+                     camera->view_projection_matrix);
+        camera_update_frustum(camera);
+        camera_update_matrix_uniforms(camera);
+    }
 }
 
 void camera_update_frustum(struct camera *camera) {
@@ -213,68 +223,64 @@ void camera_update_frustum(struct camera *camera) {
         tan(camera->fov / 2 * (M_PI / 180)) * camera->far_plane_distance;
     float half_h_side = half_v_side * camera->aspect_ratio;
 
-    mat4 clipping_matrix;
-    glm_mat4_mul(camera->projection_matrix, camera->view_matrix,
-                 clipping_matrix);
-
-    camera->frustum.left_plane[0] =
-        clipping_matrix[0][3] + clipping_matrix[0][0];
-    camera->frustum.left_plane[1] =
-        clipping_matrix[1][3] + clipping_matrix[1][0];
-    camera->frustum.left_plane[2] =
-        clipping_matrix[2][3] + clipping_matrix[2][0];
-    camera->frustum.left_plane[3] =
-        clipping_matrix[3][3] + clipping_matrix[3][0];
+    camera->frustum.left_plane[0] = camera->view_projection_matrix[0][3] +
+                                    camera->view_projection_matrix[0][0];
+    camera->frustum.left_plane[1] = camera->view_projection_matrix[1][3] +
+                                    camera->view_projection_matrix[1][0];
+    camera->frustum.left_plane[2] = camera->view_projection_matrix[2][3] +
+                                    camera->view_projection_matrix[2][0];
+    camera->frustum.left_plane[3] = camera->view_projection_matrix[3][3] +
+                                    camera->view_projection_matrix[3][0];
     plane_normalise(camera->frustum.left_plane);
 
-    camera->frustum.right_plane[0] =
-        clipping_matrix[0][3] - clipping_matrix[0][0];
-    camera->frustum.right_plane[1] =
-        clipping_matrix[1][3] - clipping_matrix[1][0];
-    camera->frustum.right_plane[2] =
-        clipping_matrix[2][3] - clipping_matrix[2][0];
-    camera->frustum.right_plane[3] =
-        clipping_matrix[3][3] - clipping_matrix[3][0];
+    camera->frustum.right_plane[0] = camera->view_projection_matrix[0][3] -
+                                     camera->view_projection_matrix[0][0];
+    camera->frustum.right_plane[1] = camera->view_projection_matrix[1][3] -
+                                     camera->view_projection_matrix[1][0];
+    camera->frustum.right_plane[2] = camera->view_projection_matrix[2][3] -
+                                     camera->view_projection_matrix[2][0];
+    camera->frustum.right_plane[3] = camera->view_projection_matrix[3][3] -
+                                     camera->view_projection_matrix[3][0];
     plane_normalise(camera->frustum.right_plane);
 
-    camera->frustum.bottom_plane[0] =
-        clipping_matrix[0][3] + clipping_matrix[0][1];
-    camera->frustum.bottom_plane[1] =
-        clipping_matrix[1][3] + clipping_matrix[1][1];
-    camera->frustum.bottom_plane[2] =
-        clipping_matrix[2][3] + clipping_matrix[2][1];
-    camera->frustum.bottom_plane[3] =
-        clipping_matrix[3][3] + clipping_matrix[3][1];
+    camera->frustum.bottom_plane[0] = camera->view_projection_matrix[0][3] +
+                                      camera->view_projection_matrix[0][1];
+    camera->frustum.bottom_plane[1] = camera->view_projection_matrix[1][3] +
+                                      camera->view_projection_matrix[1][1];
+    camera->frustum.bottom_plane[2] = camera->view_projection_matrix[2][3] +
+                                      camera->view_projection_matrix[2][1];
+    camera->frustum.bottom_plane[3] = camera->view_projection_matrix[3][3] +
+                                      camera->view_projection_matrix[3][1];
     plane_normalise(camera->frustum.bottom_plane);
 
-    camera->frustum.top_plane[0] =
-        clipping_matrix[0][3] - clipping_matrix[0][1];
-    camera->frustum.top_plane[1] =
-        clipping_matrix[1][3] - clipping_matrix[1][1];
-    camera->frustum.top_plane[2] =
-        clipping_matrix[2][3] - clipping_matrix[2][1];
-    camera->frustum.top_plane[3] =
-        clipping_matrix[3][3] - clipping_matrix[3][1];
+    camera->frustum.top_plane[0] = camera->view_projection_matrix[0][3] -
+                                   camera->view_projection_matrix[0][1];
+    camera->frustum.top_plane[1] = camera->view_projection_matrix[1][3] -
+                                   camera->view_projection_matrix[1][1];
+    camera->frustum.top_plane[2] = camera->view_projection_matrix[2][3] -
+                                   camera->view_projection_matrix[2][1];
+    camera->frustum.top_plane[3] = camera->view_projection_matrix[3][3] -
+                                   camera->view_projection_matrix[3][1];
     plane_normalise(camera->frustum.top_plane);
 
-    camera->frustum.near_plane[0] =
-        clipping_matrix[0][3] + clipping_matrix[0][2];
-    camera->frustum.near_plane[1] =
-        clipping_matrix[1][3] + clipping_matrix[1][2];
-    camera->frustum.near_plane[2] =
-        clipping_matrix[2][3] + clipping_matrix[2][2];
-    camera->frustum.near_plane[3] =
-        clipping_matrix[3][3] + clipping_matrix[3][2];
+    camera->frustum.near_plane[0] = camera->view_projection_matrix[0][3] +
+                                    camera->view_projection_matrix[0][2];
+    camera->frustum.near_plane[1] = camera->view_projection_matrix[1][3] +
+                                    camera->view_projection_matrix[1][2];
+    camera->frustum.near_plane[2] = camera->view_projection_matrix[2][3] +
+                                    camera->view_projection_matrix[2][2];
+    camera->frustum.near_plane[3] = camera->view_projection_matrix[3][3] +
+                                    camera->view_projection_matrix[3][2];
     plane_normalise(camera->frustum.near_plane);
 
-    camera->frustum.far_plane[0] =
-        clipping_matrix[0][3] - clipping_matrix[0][2];
-    camera->frustum.far_plane[1] =
-        clipping_matrix[1][3] - clipping_matrix[1][2];
-    camera->frustum.far_plane[2] =
-        clipping_matrix[2][3] - clipping_matrix[2][2];
-    camera->frustum.far_plane[3] =
-        clipping_matrix[3][3] - clipping_matrix[3][2];
+    camera->frustum.far_plane[0] = camera->view_projection_matrix[0][3] -
+                                   camera->view_projection_matrix[0][2];
+    camera->frustum.far_plane[1] = camera->view_projection_matrix[1][3] -
+                                   camera->view_projection_matrix[1][2];
+    camera->frustum.far_plane[2] = camera->view_projection_matrix[2][3] -
+                                   camera->view_projection_matrix[2][2];
+    camera->frustum.far_plane[3] = camera->view_projection_matrix[3][3] -
+                                   camera->view_projection_matrix[3][2];
     plane_normalise(camera->frustum.far_plane);
 }
 

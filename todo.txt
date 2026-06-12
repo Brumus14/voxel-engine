@@ -1,3 +1,4 @@
+When flying just above ground moves faster than should do
 Stop polling chunks and use queues instead
 Skip trying to render empty chunks maybe?
 Upscale noise so have to sample less
@@ -5,7 +6,6 @@ When world load chunk add to queue and load x per update to avoid fps spike
 Player manage chunks causes lagging
 Anti-aliasing
 Framerate drops when loading new chunks
-Pack chunk vertex format since not high precision needed
 Falling fast can clip into block
 Better textures
 Update task priorities when moving

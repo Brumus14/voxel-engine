@@ -22,9 +22,8 @@ uniform uint tilemap_tile_height;
 uniform uint tilemap_margin;
 uniform uint tilemap_spacing;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 model_matrix;
+uniform mat4 view_projection_matrix;
 
 const vec2 position_offsets[6] =vec2[](
     vec2(0.0, 0.0),
@@ -98,9 +97,9 @@ void main() {
 
     vec3 position = vec3(face_x, face_y,face_z) + vec3(offset) + chunk_position;
 
-    gl_Position = projection * view * model * vec4(position, 1.0);
+    gl_Position = view_projection_matrix * model_matrix * vec4(position, 1.0);
 
-    position_frag = vec3(model * vec4(position, 1.0));
+    position_frag = vec3(model_matrix * vec4(position, 1.0));
     texture_coordinate_frag = get_tile_texture_coordinate(face_tile_index);
     normal_frag = normals[face_direction];
 }

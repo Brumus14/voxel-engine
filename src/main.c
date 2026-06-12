@@ -161,7 +161,7 @@ int main() {
         }
 
         world_prepare_draw(&world);
-        camera_prepare_draw(&camera);
+        camera_update(&camera);
 
         world_update(&world, player.position);
         world_draw(&world, &camera);

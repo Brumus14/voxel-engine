@@ -8,8 +8,8 @@
 #include "../graphics/tilemap.h"
 #include "chunk.h"
 
-#define WORLD_WORKER_COUNT 2
-#define CHUNKS_BUCKET_COUNT 1024
+#define WORLD_WORKER_COUNT 4
+#define CHUNKS_BUCKET_COUNT 32768
 
 struct world {
     struct hash_map chunks;
