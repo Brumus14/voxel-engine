@@ -21,6 +21,7 @@ void hotbar_init(struct hotbar *hotbar, struct gui *gui);
 void hotbar_destroy(struct hotbar *hotbar);
 enum item_type hotbar_get_current_item(struct hotbar *hotbar);
 void hotbar_set_item(struct hotbar *hotbar, int slot, enum item_type item);
-void hotbar_update_gui(struct hotbar *hotbar);
+void hotbar_update(struct hotbar *hotbar, struct keyboard *keyboard);
+// void hotbar_update_gui(struct hotbar *hotbar);
 
 #endif

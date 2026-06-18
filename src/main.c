@@ -15,6 +15,7 @@
 #include "gui/hotbar.h"
 #include "game/items.h"
 #include "game/state.h"
+#include "game/main_gui.h"
 
 // REMMEMBER TO AUTO BIND IN FUNCTIONS THAT ITS REQUIRED
 // make arguments const
@@ -34,29 +35,14 @@ int main() {
     struct gui gui;
     gui_init(&gui, &window);
 
-    struct gui_image crosshair;
-    gui_image_init(&crosshair, "res/textures/crosshair.png", VEC2D_ZERO,
-                   (struct vec2d){1, 1}, GUI_ELEMENT_ORIGIN_CENTER_CENTER,
-                   GUI_ELEMENT_LAYER_0);
-
-    gui_add_image(&gui, &crosshair);
-
-    struct hotbar hotbar;
-    hotbar_init(&hotbar, &gui);
-
-    hotbar_set_item(&hotbar, 0, ITEM_TYPE_GRASS_BLOCK);
-    hotbar_set_item(&hotbar, 1, ITEM_TYPE_DIRT_BLOCK);
-    hotbar_set_item(&hotbar, 2, ITEM_TYPE_STONE_BLOCK);
-    hotbar_set_item(&hotbar, 3, ITEM_TYPE_COAL_BLOCK);
-    hotbar_set_item(&hotbar, 4, ITEM_TYPE_LOG_BLOCK);
-    hotbar_set_item(&hotbar, 5, ITEM_TYPE_DIAMOND_BLOCK);
-    hotbar_set_item(&hotbar, 6, ITEM_TYPE_LEAF_BLOCK);
-
     struct state state;
     state_init(&state);
 
     struct world world;
     world_init(&world);
+
+    struct main_gui main_gui;
+    main_gui_init(&main_gui);
 
     // 21474836.0
     // 2147483.0
@@ -70,22 +56,9 @@ int main() {
         window_update_delta_time(&window);
         window_update_input(&window);
 
-        if (window.mouse.scroll_offset.y < -0.5) {
-            hotbar.current_slot++;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        } else if (window.mouse.scroll_offset.y > 0.5) {
-            hotbar.current_slot--;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
+        main_gui_update(&main_gui);
 
-        gui_image_set_position(
-            &crosshair,
-            (struct vec2d){(double)window.width / 2,
-                           (double)window.height /
-                               2}); // only run when struct window size changed
-        hotbar_update_gui(&hotbar);
-
-        printf("%f\n", 1.0 / window_get_delta_time(&window));
+        // printf("%f\n", 1.0 / window_get_delta_time(&window));
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {
@@ -108,56 +81,8 @@ int main() {
             }
         }
 
-        // move to hotbar file?
-        // move to input file?
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_1)) {
-            // make into function so doesnt update hotbar gui every frame
-            hotbar.current_slot = 0;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_2)) {
-            hotbar.current_slot = 1;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_3)) {
-            hotbar.current_slot = 2;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_4)) {
-            hotbar.current_slot = 3;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_5)) {
-            hotbar.current_slot = 4;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_6)) {
-            hotbar.current_slot = 5;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_7)) {
-            hotbar.current_slot = 6;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_8)) {
-            hotbar.current_slot = 7;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_9)) {
-            hotbar.current_slot = 8;
-            hotbar.current_slot = mod(hotbar.current_slot, 9);
-        }
-
         if (!state.paused) {
-            player_update(&player, &window, &world, &hotbar);
+            player_update(&player, &window, &world, &main_gui.hotbar);
         }
 
         world_prepare_draw(&world);
@@ -172,9 +97,9 @@ int main() {
         window_swap_buffers(&window);
     }
 
+    main_gui_destroy(&main_gui);
     gui_destroy(&gui);
     world_destroy(&world);
-    hotbar_destroy(&hotbar);
     window_destroy(&window);
 
     window_shutdown();

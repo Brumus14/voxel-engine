@@ -1,60 +1,9 @@
 #include "hotbar.h"
 
-void hotbar_init(struct hotbar *hotbar, struct gui *gui) {
-    hotbar->current_slot = 0;
-
-    tilemap_init(&hotbar->item_tilemap, "res/textures/icons.png",
-                 TEXTURE_FILTER_NEAREST, 32, 32, 1, 2);
-
-    for (int i = 0; i < 9; i++) {
-        hotbar->items[i] = ITEM_TYPE_EMPTY;
-    }
-
-    hotbar->gui = gui;
-
-    // multiply scale by the size
-    gui_image_init(&hotbar->hotbar_image, "res/textures/hotbar.png", VEC2D_ZERO,
-                   (struct vec2d){2, 2}, GUI_ELEMENT_ORIGIN_CENTER_BOTTOM,
-                   GUI_ELEMENT_LAYER_0);
-
-    for (int i = 0; i < 9; i++) {
-        gui_image_init(&hotbar->item_images[i], "res/textures/icons.png",
-                       VEC2D_ZERO, (struct vec2d){2, 2},
-                       GUI_ELEMENT_ORIGIN_CENTER_BOTTOM, GUI_ELEMENT_LAYER_2);
-    }
-
-    gui_image_init(&hotbar->hotbar_selected_image,
-                   "res/textures/hotbar_selected.png", VEC2D_ZERO,
-                   (struct vec2d){2, 2}, GUI_ELEMENT_ORIGIN_CENTER_BOTTOM,
-                   GUI_ELEMENT_LAYER_1);
-
-    hotbar_update_gui(hotbar);
-
-    gui_add_image(gui, &hotbar->hotbar_image);
-
-    for (int i = 0; i < 9; i++) {
-        gui_add_image(gui, &hotbar->item_images[i]);
-    }
-
-    gui_add_image(gui, &hotbar->hotbar_selected_image);
-}
-
-// Remove gui elements from gui
-void hotbar_destroy(struct hotbar *hotbar) {
-    tilemap_destroy(&hotbar->item_tilemap);
-}
-
-enum item_type hotbar_get_current_item(struct hotbar *hotbar) {
-    return hotbar->items[hotbar->current_slot];
-}
-
-void hotbar_set_item(struct hotbar *hotbar, int slot, enum item_type item) {
-    hotbar->items[slot] = item;
-    hotbar_update_gui(hotbar);
-}
+#include <math.h>
 
 // separate window resizing stuff
-void hotbar_update_gui(struct hotbar *hotbar) {
+void update_gui(struct hotbar *hotbar) {
     gui_image_set_position(
         &hotbar->hotbar_image,
         (struct vec2d){round((double)hotbar->gui->window->width / 2),
@@ -89,4 +38,112 @@ void hotbar_update_gui(struct hotbar *hotbar) {
     gui_image_set_position(
         &hotbar->hotbar_selected_image,
         (struct vec2d){selected_x, hotbar->gui->window->height - 2 * 2});
+}
+
+void hotbar_init(struct hotbar *hotbar, struct gui *gui) {
+    hotbar->current_slot = 0;
+
+    tilemap_init(&hotbar->item_tilemap, "res/textures/icons.png",
+                 TEXTURE_FILTER_NEAREST, 32, 32, 1, 2);
+
+    for (int i = 0; i < 9; i++) {
+        hotbar->items[i] = ITEM_TYPE_EMPTY;
+    }
+
+    hotbar->gui = gui;
+
+    // multiply scale by the size
+    gui_image_init(&hotbar->hotbar_image, "res/textures/hotbar.png", VEC2D_ZERO,
+                   (struct vec2d){2, 2}, GUI_ELEMENT_ORIGIN_CENTER_BOTTOM,
+                   GUI_ELEMENT_LAYER_0);
+
+    for (int i = 0; i < 9; i++) {
+        gui_image_init(&hotbar->item_images[i], "res/textures/icons.png",
+                       VEC2D_ZERO, (struct vec2d){2, 2},
+                       GUI_ELEMENT_ORIGIN_CENTER_BOTTOM, GUI_ELEMENT_LAYER_2);
+    }
+
+    gui_image_init(&hotbar->hotbar_selected_image,
+                   "res/textures/hotbar_selected.png", VEC2D_ZERO,
+                   (struct vec2d){2, 2}, GUI_ELEMENT_ORIGIN_CENTER_BOTTOM,
+                   GUI_ELEMENT_LAYER_1);
+
+    update_gui(hotbar);
+
+    gui_add_image(gui, &hotbar->hotbar_image);
+
+    for (int i = 0; i < 9; i++) {
+        gui_add_image(gui, &hotbar->item_images[i]);
+    }
+
+    gui_add_image(gui, &hotbar->hotbar_selected_image);
+}
+
+// Remove gui elements from gui
+void hotbar_destroy(struct hotbar *hotbar) {
+    tilemap_destroy(&hotbar->item_tilemap);
+}
+
+enum item_type hotbar_get_current_item(struct hotbar *hotbar) {
+    return hotbar->items[hotbar->current_slot];
+}
+
+void hotbar_set_item(struct hotbar *hotbar, int slot, enum item_type item) {
+    hotbar->items[slot] = item;
+    update_gui(hotbar);
+}
+
+void hotbar_update(struct hotbar *hotbar, struct keyboard *keyboard) {
+    bool hotbar_changed = false;
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_1)) {
+        // make into function so doesnt update hotbar gui every frame
+        hotbar->current_slot = 0;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_2)) {
+        hotbar->current_slot = 1;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_3)) {
+        hotbar->current_slot = 2;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_4)) {
+        hotbar->current_slot = 3;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_5)) {
+        hotbar->current_slot = 4;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_6)) {
+        hotbar->current_slot = 5;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_7)) {
+        hotbar->current_slot = 6;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_8)) {
+        hotbar->current_slot = 7;
+        hotbar_changed = true;
+    }
+
+    if (keyboard_key_just_down(keyboard, KEYCODE_9)) {
+        hotbar->current_slot = 8;
+        hotbar_changed = true;
+    }
+
+    if (hotbar_changed) {
+        hotbar->current_slot %= 9;
+        update_gui(hotbar);
+    }
 }

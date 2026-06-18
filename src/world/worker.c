@@ -22,8 +22,12 @@ void *worker_generate_chunk_terrain(void *arg) {
 
     atomic_store(&chunk->blocks_state, CHUNK_BLOCKS_STATE_GENERATING);
 
+    struct stopwatch s;
+    stopwatch_start(&s);
     _Atomic(enum block_type) *new_blocks =
         world_generation_chunk_terrain(chunk->position, seed);
+    stopwatch_end(&s);
+    printf("time: %fms\n", stopwatch_time(&s) * 1000);
 
     _Atomic(enum block_type) *old_blocks =
         atomic_exchange(&chunk->blocks, new_blocks);
