@@ -32,9 +32,6 @@ int main() {
     camera_init(&camera, VEC3D_ZERO, VEC3D_ZERO, 90.0,
                 window_get_aspect_ratio(&window), 0.1, 1000.0);
 
-    struct gui gui;
-    gui_init(&gui, &window);
-
     struct state state;
     state_init(&state);
 
@@ -42,7 +39,7 @@ int main() {
     world_init(&world);
 
     struct main_gui main_gui;
-    main_gui_init(&main_gui);
+    main_gui_init(&main_gui, &window);
 
     // 21474836.0
     // 2147483.0
@@ -58,7 +55,7 @@ int main() {
 
         main_gui_update(&main_gui);
 
-        // printf("%f\n", 1.0 / window_get_delta_time(&window));
+        printf("%f\n", 1.0 / window_get_delta_time(&window));
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {
@@ -92,13 +89,13 @@ int main() {
         world_draw(&world, &camera);
 
         renderer_clear_depth_buffer();
-        gui_draw(&gui);
+
+        main_gui_draw(&main_gui);
 
         window_swap_buffers(&window);
     }
 
     main_gui_destroy(&main_gui);
-    gui_destroy(&gui);
     world_destroy(&world);
     window_destroy(&window);
 

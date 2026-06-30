@@ -1,6 +1,7 @@
 #include "hotbar.h"
 
 #include <math.h>
+#include "../math/math_util.h"
 
 // separate window resizing stuff
 void update_gui(struct hotbar *hotbar) {
@@ -12,7 +13,6 @@ void update_gui(struct hotbar *hotbar) {
     for (int i = 0; i < 9; i++) {
         if (hotbar->items[i] == ITEM_TYPE_EMPTY) {
             hotbar->item_images[i].visible = false;
-
             continue;
         }
 
@@ -93,8 +93,20 @@ void hotbar_set_item(struct hotbar *hotbar, int slot, enum item_type item) {
     update_gui(hotbar);
 }
 
-void hotbar_update(struct hotbar *hotbar, struct keyboard *keyboard) {
+void hotbar_update(struct hotbar *hotbar, struct keyboard *keyboard,
+                   struct mouse *mouse) {
     bool hotbar_changed = false;
+    hotbar_changed = true; // TODO: this is bad
+
+    if (mouse->scroll_offset.y < -0.5) {
+        hotbar->current_slot++;
+        hotbar->current_slot = mod(hotbar->current_slot, 9);
+        hotbar_changed = true;
+    } else if (mouse->scroll_offset.y > 0.5) {
+        hotbar->current_slot--;
+        hotbar->current_slot = mod(hotbar->current_slot, 9);
+        hotbar_changed = true;
+    }
 
     if (keyboard_key_just_down(keyboard, KEYCODE_1)) {
         // make into function so doesnt update hotbar gui every frame

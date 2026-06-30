@@ -10,8 +10,9 @@ struct main_gui {
     struct hotbar hotbar;
 };
 
-void main_gui_init(struct main_gui *gui);
+void main_gui_init(struct main_gui *gui, struct window *window);
 void main_gui_update(struct main_gui *gui);
+void main_gui_draw(struct main_gui *gui);
 void main_gui_destroy(struct main_gui *gui);
 
 #endif

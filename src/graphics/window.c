@@ -97,6 +97,11 @@ void glfw_framebuffer_size_callback(GLFWwindow *glfw_window, int width,
     camera_set_aspect_ratio(window_pointer->camera,
                             (float)window_pointer->width /
                                 window_pointer->height);
+
+    if (window_pointer->framebuffer_size_callback) {
+        window_pointer->framebuffer_size_callback(window_pointer, width,
+                                                  height);
+    }
 }
 
 void glfw_scroll_callback(GLFWwindow *glfw_window, double xoffset,
@@ -104,12 +109,12 @@ void glfw_scroll_callback(GLFWwindow *glfw_window, double xoffset,
     struct window *window_pointer =
         (struct window *)glfwGetWindowUserPointer(glfw_window);
 
-    /*if (window_pointer->scroll_callback) {*/
-    /*    window_pointer->scroll_callback(window_pointer, xoffset, yoffset);*/
-    /*}*/
-
     window_pointer->mouse.scroll_offset.x += xoffset;
     window_pointer->mouse.scroll_offset.y += yoffset;
+
+    if (window_pointer->scroll_callback) {
+        window_pointer->scroll_callback(window_pointer, xoffset, yoffset);
+    }
 }
 
 void glfw_init() {
@@ -125,7 +130,7 @@ void window_init(struct window *window, int width, int height, char *title,
     window->height = height;
     window->title = title;
     window->camera = camera;
-    // work on callbacks
+    window->framebuffer_size_callback = NULL;
     window->scroll_callback = NULL;
 
     window_update_delta_time(window);

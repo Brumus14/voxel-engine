@@ -1,3 +1,4 @@
+Better window callback system such as for updating gui on resize
 When flying just above ground moves faster than should do
 Stop polling chunks and use queues instead
 Skip trying to render empty chunks maybe?
