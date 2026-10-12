@@ -3,32 +3,32 @@
 
 #include "FastNoiseLite.h"
 
-enum noise_2d_type {
-    NOISE_2D_TYPE_PERLIN,
+enum noise_type {
+    NOISE_TYPE_PERLIN,
+    NOISE_TYPE_OPENSIMPLEX2S,
 };
 
-struct noise_2d {
+enum noise_fractal_type {
+    NOISE_FRACTAL_TYPE_NONE,
+    NOISE_FRACTAL_TYPE_FBM,
+};
+
+struct noise {
     fnl_state state;
 };
 
-enum noise_3d_type {
-    NOISE_3D_TYPE_PERLIN,
-};
+void noise_init(struct noise *noise, enum noise_type noise_type,
+                enum noise_fractal_type fractal_type, int seed, float frequency,
+                int octaves, float lacunarity, float gain);
 
-struct noise_3d {
-    fnl_state state;
-};
+float noise_get_2d(struct noise *noise, int x, int y);
+float *noise_generate_upscaled_2d(struct noise *noise, int x, int y, int width,
+                                  int height, int x_step, int y_step);
 
-void noise_2d_init(struct noise_2d *noise, enum noise_2d_type type, int seed,
-                   float frequency, int octaves, float lacunarity, float gain);
-float noise_2d_get(struct noise_2d *noise, float x, float y);
-float noise_2d_generate(struct noise_2d *noise);
-float noise_2d_generate_upscaled(struct noise_2d *noise);
-
-void noise_3d_init(struct noise_3d *noise, enum noise_3d_type type, int seed,
-                   float frequency, int octaves, float lacunarity, float gain);
-float noise_3d_get(struct noise_3d *noise, float x, float y, float z);
-float noise_3d_generate(struct noise_3d *noise);
-float noise_3d_generate_upscaled(struct noise_3d *noise);
+float noise_get_3d(struct noise *noise, int x, int y, int z);
+// TODO: Switch from individual components to vec3i
+float *noise_generate_upscaled_3d(struct noise *noise, int x, int y, int z,
+                                  int width, int height, int depth, int x_step,
+                                  int y_step, int z_step);
 
 #endif

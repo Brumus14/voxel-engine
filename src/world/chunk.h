@@ -4,7 +4,6 @@
 #include "block.h"
 #include "../math/vec3.h"
 #include "../graphics/graphics.h"
-#include "../graphics/tilemap.h"
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdint.h>
@@ -61,7 +60,6 @@ struct chunk {
     struct vec3i position;
     enum chunk_type type;
     int neighbor_load_count;
-    struct tilemap *tilemap;
     struct dynamic_array faces;
 
     // Abstract into mesh?
@@ -112,7 +110,7 @@ static const int INDEX_ORDER[6] = {0, 1, 2,
 // clang-format on
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                enum chunk_type type, struct tilemap *tilemap);
+                enum chunk_type type);
 void chunk_destroy(struct chunk *chunk);
 void chunk_update_buffers(struct chunk *chunk);
 void chunk_draw(struct chunk *chunk, int gl_chunk_position_location);

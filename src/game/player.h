@@ -25,7 +25,7 @@
 
 #define JUMP_COOLDOWN 0.4
 
-#define RENDER_DISTANCE 2
+#define RENDER_DISTANCE 12
 
 #define COLLISION_BOX_X 0.6
 #define COLLISION_BOX_Y 1.8

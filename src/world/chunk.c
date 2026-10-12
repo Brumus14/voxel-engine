@@ -12,7 +12,7 @@
 #include "../util/gl.h"
 
 void chunk_init(struct chunk *chunk, struct vec3i position,
-                enum chunk_type type, struct tilemap *tilemap) {
+                enum chunk_type type) {
     chunk->visible = false;
     atomic_init(&chunk->blocks, NULL);
     atomic_init(&chunk->unloaded, false);
@@ -25,7 +25,6 @@ void chunk_init(struct chunk *chunk, struct vec3i position,
     chunk->position = position;
     chunk->type = type;
     chunk->neighbor_load_count = 0;
-    chunk->tilemap = tilemap;
     dynamic_array_init(&chunk->faces, sizeof(struct face));
 
     vao_init(&chunk->vao);
@@ -67,7 +66,6 @@ void chunk_draw(struct chunk *chunk, int gl_chunk_position_location) {
         return;
     }
 
-    tilemap_bind(chunk->tilemap);
     vao_bind(&chunk->vao);
 
     bo_bind(&chunk->ssbo);

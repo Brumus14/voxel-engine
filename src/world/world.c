@@ -136,7 +136,7 @@ void load_chunk(struct world *world, struct vec3i position,
     }
 
     struct chunk *new_chunk = malloc(sizeof(struct chunk));
-    chunk_init(new_chunk, position, type, &world->tilemap);
+    chunk_init(new_chunk, position, type);
 
     if (neighbor_load) {
         new_chunk->neighbor_load_count++;
@@ -201,6 +201,10 @@ void world_unload_chunk(struct world *world, struct vec3i position) {
             atomic_store(&neighbor->unloaded, true);
         }
     }
+}
+
+bool world_is_chunk_loaded(struct world *world, struct vec3i position) {
+    return hash_map_get(&world->chunks, &position) != NULL;
 }
 
 bool get_chunk_neighbors(struct world *world, struct vec3i position,
@@ -357,7 +361,7 @@ void world_update(struct world *world, struct vec3d player_position) {
 }
 
 void world_prepare_draw(struct world *world) {
-    texture_bind(&world->tilemap.texture);
+    tilemap_bind(&world->tilemap);
     shader_program_use(&world->shader_program);
 }
 

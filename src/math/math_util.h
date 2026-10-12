@@ -25,11 +25,19 @@ static inline double max(double a, double b) {
 
 static inline int floor_div(int n, int d) {
     int q = n / d;
-    int r = n % d;
 
-    if ((r > 0 && d < 0) || (r < 0 && d > 0)) {
+    if ((n ^ d) < 0 && n % d != 0) {
         q--;
-        r += d;
+    }
+
+    return q;
+}
+
+static inline int ceil_div(int n, int d) {
+    int q = n / d;
+
+    if ((n ^ d) > 0 && n % d != 0) {
+        q++;
     }
 
     return q;

@@ -21,6 +21,8 @@ struct world {
     struct shader_program shader_program;
 
     int gl_chunk_position_location;
+    int gl_render_distance;
+    int gl_chunk_size;
     int gl_tilemap_width_location;
     int gl_tilemap_height_location;
     int gl_tilemap_tiles_width_location;
@@ -35,6 +37,7 @@ void world_init(struct world *world);
 void world_destroy(struct world *world);
 void world_load_chunk(struct world *world, struct vec3i position);
 void world_unload_chunk(struct world *world, struct vec3i position);
+bool world_is_chunk_loaded(struct world *world, struct vec3i position);
 void world_update(struct world *world, struct vec3d player_position);
 void world_prepare_draw(struct world *world);
 void world_draw(struct world *world, struct camera *camera);

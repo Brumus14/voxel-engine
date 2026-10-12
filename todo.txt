@@ -1,6 +1,6 @@
     Low render distance (1,2) causes flashing on chunk modificiation
 Better window callback system such as for updating gui on resize
-Stop polling chunks and use queues instead
+    Stop polling chunks and use queues instead
 Skip trying to render empty chunks maybe?
     Upscale noise so have to sample less
     When world load chunk add to queue and load x per update to avoid fps spike

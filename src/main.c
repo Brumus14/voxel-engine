@@ -6,8 +6,10 @@
 #include "graphics/shader_program.h"
 #include "graphics/window.h"
 #include "input/keyboard.h"
+#include "util/stopwatch.h"
 #include "world/block.h"
 #include "game/player.h"
+#include "world/noise.h"
 #include "world/world.h"
 #include "math/math_util.h"
 #include "gui/gui.h"
@@ -16,11 +18,22 @@
 #include "game/items.h"
 #include "game/state.h"
 #include "game/main_gui.h"
+#include "world/world_generation.h"
 
 // REMMEMBER TO AUTO BIND IN FUNCTIONS THAT ITS REQUIRED
 // make arguments const
 
 int main() {
+    float total = 0;
+    struct stopwatch sw;
+    for (int i = 0; i < 100; i++) {
+        stopwatch_start(&sw);
+        world_generation_chunk_terrain((struct vec3i){i, 0, -i}, 0);
+        stopwatch_end(&sw);
+        total += stopwatch_time(&sw);
+    }
+    printf("%f\n", total / 100);
+
     struct window window;
     struct camera camera;
 
@@ -55,7 +68,7 @@ int main() {
 
         main_gui_update(&main_gui);
 
-        // printf("%f\n", 1.0 / window_get_delta_time(&window));
+        printf("%f\n", 1.0 / window_get_delta_time(&window));
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {

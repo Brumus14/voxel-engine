@@ -23,9 +23,6 @@ void player_init(struct player *player, struct vec3d position,
     player->moving = false;
     player->on_ground = false;
 
-    // Initially manage chunks
-    player->manage_chunks = true;
-
     stopwatch_start(&player->on_ground_timer);
     stopwatch_start(&player->last_jump_timer);
 }
@@ -176,15 +173,6 @@ void update_movement(struct player *player, float delta_time,
         max_z =
             ceil(player->position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
             1;
-    }
-
-    if ((int)floor(player->position.x / CHUNK_SIZE_X) !=
-            (int)floor(previous_position.x / CHUNK_SIZE_X) ||
-        (int)floor(player->position.y / CHUNK_SIZE_Y) !=
-            (int)floor(previous_position.y / CHUNK_SIZE_Y) ||
-        (int)floor(player->position.z / CHUNK_SIZE_Z) !=
-            (int)floor(previous_position.z / CHUNK_SIZE_Z)) {
-        player->manage_chunks = true;
     }
 }
 
@@ -392,6 +380,30 @@ void player_update(struct player *player, struct window *window,
     player_manage_chunks(player, world);
 }
 
+bool chunk_in_render_distance(struct vec3i player_chunk_position,
+                              struct vec3i chunk_position) {
+    int x = chunk_position.x - player_chunk_position.x;
+    int y = chunk_position.y - player_chunk_position.y;
+    int z = chunk_position.z - player_chunk_position.z;
+
+    if (x > RENDER_DISTANCE || x < -RENDER_DISTANCE || y > RENDER_DISTANCE ||
+        y < -RENDER_DISTANCE || z > RENDER_DISTANCE || z < -RENDER_DISTANCE) {
+        return false;
+    } else {
+        return true;
+    }
+
+    // Sphere chunk loading
+    // if (pow(chunk_position.x - player_chunk_position.x, 2) +
+    //         pow(chunk_position.y - player_chunk_position.y, 2) +
+    //         pow(chunk_position.z - player_chunk_position.z, 2) <
+    //     pow(RENDER_DISTANCE, 2)) {
+    //     return true;
+    // }
+    //
+    // return false;
+}
+
 static inline void
 player_manage_chunks_chunk(struct vec3i player_chunk_position,
                            struct world *world, struct chunk *chunk) {
@@ -399,20 +411,12 @@ player_manage_chunks_chunk(struct vec3i player_chunk_position,
         return;
     }
 
-    if (abs(player_chunk_position.x - chunk->position.x) > RENDER_DISTANCE ||
-        abs(player_chunk_position.y - chunk->position.y) > RENDER_DISTANCE ||
-        abs(player_chunk_position.z - chunk->position.z) > RENDER_DISTANCE) {
+    if (!chunk_in_render_distance(player_chunk_position, chunk->position)) {
         world_unload_chunk(world, chunk->position);
     }
 }
 
 void player_manage_chunks(struct player *player, struct world *world) {
-    if (!player->manage_chunks) {
-        return;
-    }
-
-    player->manage_chunks = false;
-
     struct vec3i player_chunk_position = {
         floor(player->position.x / CHUNK_SIZE_X),
         floor(player->position.y / CHUNK_SIZE_Y),
@@ -428,21 +432,18 @@ void player_manage_chunks(struct player *player, struct world *world) {
         player_manage_chunks_chunk(player_chunk_position, world, node->value);
     }
 
-    // Move this somewhere better
-
     for (int z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
         for (int y = -RENDER_DISTANCE; y <= RENDER_DISTANCE; y++) {
             for (int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 // Sphere chunk loading
-                // if (pow(x, 2) + pow(y, 2) + pow(z, 2) >
-                //     pow(RENDER_DISTANCE, 2)) {
-                //     continue;
-                // }
+                struct vec3i chunk_position = (struct vec3i){
+                    player_chunk_position.x + x, player_chunk_position.y + y,
+                    player_chunk_position.z + z};
 
-                world_load_chunk(world,
-                                 (struct vec3i){player_chunk_position.x + x,
-                                                player_chunk_position.y + y,
-                                                player_chunk_position.z + z});
+                if (chunk_in_render_distance(player_chunk_position,
+                                             chunk_position)) {
+                    world_load_chunk(world, chunk_position);
+                }
             }
         }
     }
