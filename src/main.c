@@ -1,5 +1,4 @@
 #include "glad/glad.h"
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "graphics/camera.h"
@@ -19,6 +18,7 @@
 #include "game/state.h"
 #include "game/main_gui.h"
 #include "world/world_generation.h"
+#include "util/log.h"
 
 // REMMEMBER TO AUTO BIND IN FUNCTIONS THAT ITS REQUIRED
 // make arguments const
@@ -33,6 +33,8 @@ int main() {
         total += stopwatch_time(&sw);
     }
     printf("%f\n", total / 100);
+
+    log_init();
 
     struct window window;
     struct camera camera;
@@ -68,7 +70,7 @@ int main() {
 
         main_gui_update(&main_gui);
 
-        printf("%f\n", 1.0 / window_get_delta_time(&window));
+        // printf("%f\n", 1.0 / window_get_delta_time(&window));
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {

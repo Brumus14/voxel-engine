@@ -5,7 +5,6 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include <threads.h>
-#include <unistd.h>
 #include "../math/vec3.h"
 #include "../util/direction.h"
 #include "../util/stopwatch.h"
@@ -189,7 +188,7 @@ void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
     }
 }
 
-inline enum block_type chunk_get_block(struct chunk *chunk,
+enum block_type chunk_get_block(struct chunk *chunk,
                                        struct vec3i position) {
     if (atomic_load(&chunk->blocks_state) != CHUNK_BLOCKS_STATE_GENERATED) {
         return BLOCK_TYPE_EMPTY;
@@ -200,7 +199,7 @@ inline enum block_type chunk_get_block(struct chunk *chunk,
                        position.z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
 }
 
-inline void chunk_set_block(struct chunk *chunk, struct vec3i position,
+void chunk_set_block(struct chunk *chunk, struct vec3i position,
                             enum block_type type) {
     if (atomic_load(&chunk->blocks_state) != CHUNK_BLOCKS_STATE_GENERATED) {
         return;

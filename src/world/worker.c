@@ -5,7 +5,6 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include "../util/log.h"
 #include "../math/math_util.h"
 #include "../util/stopwatch.h"

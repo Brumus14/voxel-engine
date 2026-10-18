@@ -1,3 +1,7 @@
 #include "log.h"
 
-pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
+struct mutex log_mutex;
+
+void log_init() {
+    mutex_init(&log_mutex);
+}

@@ -9,6 +9,8 @@ GLenum to_shader_type_gl(enum shader_type type) {
         return GL_VERTEX_SHADER;
     case SHADER_TYPE_FRAGMENT:
         return GL_FRAGMENT_SHADER;
+    default:
+    return GL_VERTEX_SHADER; // TODO: Panic?
     }
 }
 
@@ -57,10 +59,12 @@ void shader_compile(struct shader *shader) {
         int max_length = 0;
         GL_CALL(glGetShaderiv(shader->gl_id, GL_INFO_LOG_LENGTH, &max_length));
 
-        char error[max_length];
+        char *error = malloc(sizeof(char) * max_length);
         glGetShaderInfoLog(shader->gl_id, max_length, &max_length,
-                           (GLchar *)&error);
+                           (GLchar *)error);
 
         fprintf(stderr, "shader_compile: %s\n", error);
+
+        free(error);
     }
 }

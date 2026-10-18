@@ -1,10 +1,7 @@
 #include "thread_pool.h"
 
 #include "../data_structures/queue.h"
-#include <pthread.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include "../util/log.h"
 
 void *thread_pool_thread_main(void *arg) {
@@ -45,7 +42,7 @@ void thread_pool_init(struct thread_pool *pool, unsigned int count) {
     condition_init(&pool->task_available);
     pool->stop = false;
 
-    pool->threads = malloc(sizeof(pthread_t) * count);
+    pool->threads = malloc(sizeof(struct mutex) * count);
 
     for (unsigned int i = 0; i < count; i++) {
         thread_create(&pool->threads[i], thread_pool_thread_main, pool);

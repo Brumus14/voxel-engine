@@ -17,13 +17,13 @@ void dynamic_array_destroy(struct dynamic_array *array) {
 }
 
 void *dynamic_array_get(struct dynamic_array *array, unsigned long index) {
-    return array->array + index * array->value_size;
+    return (unsigned char *)array->array + index * array->value_size;
 }
 
 void dynamic_array_set(struct dynamic_array *array, unsigned long index,
                        const void *data) {
     // Use indexing maybe?
-    memcpy(array->array + index * array->value_size, data, array->value_size);
+    memcpy((unsigned char *)array->array + index * array->value_size, data, array->value_size);
 }
 
 void dynamic_array_insert_end(struct dynamic_array *array, const void *data) {
@@ -36,7 +36,7 @@ void dynamic_array_insert_end(struct dynamic_array *array, const void *data) {
             realloc(array->array, array->capacity * array->value_size);
     }
 
-    memcpy(array->array + (array->element_count - 1) * array->value_size, data,
+    memcpy((unsigned char *)array->array + (array->element_count - 1) * array->value_size, data,
            array->value_size);
 }
 
@@ -45,7 +45,7 @@ void dynamic_array_insert_end(struct dynamic_array *array, const void *data) {
 // This isnt very safe
 void *dynamic_array_remove_end(struct dynamic_array *array) {
     array->element_count--;
-    return array->array + array->element_count * array->value_size;
+    return (unsigned char *)array->array + array->element_count * array->value_size;
 }
 
 void dynamic_array_clear(struct dynamic_array *array) {
@@ -55,6 +55,6 @@ void dynamic_array_clear(struct dynamic_array *array) {
 void dynamic_array_insert_set_end(struct dynamic_array *array, const void *set,
                                   int count) {
     for (int i = 0; i < count; i++) {
-        dynamic_array_insert_end(array, set + array->value_size * i);
+        dynamic_array_insert_end(array, (const unsigned char *)set + array->value_size * i);
     }
 }

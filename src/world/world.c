@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-#include <unistd.h>
 #include "../math/math_util.h"
 #include "../util/stopwatch.h"
 #include "chunk.h"

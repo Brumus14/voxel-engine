@@ -15,11 +15,11 @@ int mod(int a, int b);
 int random_int();
 double random_range_double(double min, double max);
 
-static inline double min(double a, double b) {
+static inline double math_min(double a, double b) {
     return (a < b) ? a : b;
 }
 
-static inline double max(double a, double b) {
+static inline double math_max(double a, double b) {
     return (a > b) ? a : b;
 }
 

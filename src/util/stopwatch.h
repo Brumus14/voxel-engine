@@ -1,11 +1,9 @@
 #ifndef STOPWATCH_H
 #define STOPWATCH_H
 
-#include <time.h>
-
 struct stopwatch {
-    struct timespec start_time;
-    struct timespec end_time;
+    double start_time;
+    double end_time;
 };
 
 void stopwatch_start(struct stopwatch *stopwatch);

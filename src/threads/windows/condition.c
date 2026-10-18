@@ -5,7 +5,7 @@ void condition_init(struct condition *condition) {
 }
 
 void condition_wait(struct condition *condition, struct mutex *mutex) {
-    SleepConditionVariableSRW(condition->condition, mutex->lock, INFINITE, 0);
+    SleepConditionVariableSRW(&condition->condition, &mutex->lock, INFINITE, 0);
 }
 
 void condition_signal(struct condition *condition) {

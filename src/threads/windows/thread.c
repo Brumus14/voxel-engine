@@ -7,9 +7,9 @@ void thread_create(struct thread *thread, thread_main main, void *arg) {
 }
 
 void thread_join(struct thread *thread) {
-    WaitForSingleObject(thread->handle, INFINITE)
+    WaitForSingleObject(thread->handle, INFINITE);
 }
 
 void thread_destroy(struct thread *thread) {
-    CloseHandle(mutex->handle);
+    CloseHandle(thread->handle);
 }

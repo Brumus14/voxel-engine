@@ -3,7 +3,6 @@
 
 #include "../data_structures/priority_queue.h"
 #include "../threads/threads.h"
-#include <unistd.h>
 
 typedef void *(*thread_pool_task_function)(void *);
 

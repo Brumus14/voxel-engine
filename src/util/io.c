@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 char *read_file(char *path) {
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
 
     if (!file) {
         fprintf(stderr, "read_file: could not open file at %s\n", path);

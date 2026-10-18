@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 4.3)
 
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+
 if(UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif()
@@ -48,3 +52,7 @@ target_link_libraries(voxel_engine PRIVATE
     glfw
     glad
 )
+
+if(MSVC)
+    target_compile_options(voxel_engine PRIVATE /experimental:c11atomics)
+endif()

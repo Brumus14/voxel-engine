@@ -1,7 +1,5 @@
 #include "../mutex.h"
 
-#include <pthread.h>
-
 void mutex_init(struct mutex *mutex) {
     InitializeSRWLock(&mutex->lock);
 }

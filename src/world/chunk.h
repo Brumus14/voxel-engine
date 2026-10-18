@@ -4,7 +4,6 @@
 #include "block.h"
 #include "../math/vec3.h"
 #include "../graphics/graphics.h"
-#include <pthread.h>
 #include <stdatomic.h>
 #include <stdint.h>
 #include "../data_structures/dynamic_array.h"
