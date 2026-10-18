@@ -18,6 +18,7 @@ struct thread_pool {
     struct priority_queue tasks;
     struct mutex tasks_lock;
     struct condition task_available;
+    bool stop;
 };
 
 void *thread_pool_task_main(void *arg);

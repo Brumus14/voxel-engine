@@ -6,8 +6,6 @@
 #if PLATFORM_POSIX
 #include <pthread.h>
 
-typedef void *(*thread_main)(void *);
-
 struct thread {
     pthread_t thread;
 };
@@ -20,7 +18,10 @@ struct thread {
 };
 #endif
 
+typedef void *(*thread_main)(void *);
+
 void thread_create(struct thread *thread, thread_main main, void *arg);
-void thread_cancel(struct thread *thread);
+void thread_join(struct thread *thread);
+void thread_destroy(struct thread *thread);
 
 #endif

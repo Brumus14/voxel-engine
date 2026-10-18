@@ -1,3 +1,5 @@
+    Add sun
+    Add day night cycle, improve sky
     Low render distance (1,2) causes flashing on chunk modificiation
 Better window callback system such as for updating gui on resize
     Stop polling chunks and use queues instead

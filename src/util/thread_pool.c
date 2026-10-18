@@ -12,9 +12,14 @@ void *thread_pool_thread_main(void *arg) {
     struct priority_queue *tasks = &pool->tasks;
     struct mutex *tasks_lock = &pool->tasks_lock;
     struct condition *task_available = &pool->task_available;
+    bool *stop = &pool->stop;
 
     // Add destroy flag
     while (true) {
+        if (*stop) {
+            break;
+        }
+
         mutex_lock(tasks_lock);
 
         while (priority_queue_is_empty(tasks)) {
@@ -38,6 +43,7 @@ void thread_pool_init(struct thread_pool *pool, unsigned int count) {
     priority_queue_init(&pool->tasks);
     mutex_init(&pool->tasks_lock);
     condition_init(&pool->task_available);
+    pool->stop = false;
 
     pool->threads = malloc(sizeof(pthread_t) * count);
 
@@ -47,8 +53,10 @@ void thread_pool_init(struct thread_pool *pool, unsigned int count) {
 }
 
 void thread_pool_destroy(struct thread_pool *pool) {
+    pool->stop = true;
+
     for (unsigned int i = 0; i < pool->thread_count; i++) {
-        thread_cancel(&pool->threads[i]);
+        thread_join(&pool->threads[i]);
     }
 
     free(pool->threads);

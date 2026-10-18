@@ -13,7 +13,9 @@ struct mutex {
 #elif PLATFORM_WINDOWS
 #include <windows.h>
 
-struct mutex {};
+struct mutex {
+    SRWLOCK lock;
+};
 #endif
 
 void mutex_init(struct mutex *mutex);

@@ -12,12 +12,22 @@ project(voxel_engine C)
 
 file(GLOB_RECURSE SRC_FILES src/*.c)
 
-if(POSIX)
-list(APPEND SRC_FILES 
-    src/threads/posix/mutex.c
-    src/threads/posix/condition.c
-    src/threads/posix/thread.c
+list(FILTER SRC_FILES EXCLUDE REGEX
+    "/threads/(posix|windows)/"
 )
+
+if(UNIX)
+    list(APPEND SRC_FILES 
+        src/threads/posix/mutex.c
+        src/threads/posix/condition.c
+        src/threads/posix/thread.c
+    )
+elseif(WIN32)
+    list(APPEND SRC_FILES 
+        src/threads/windows/mutex.c
+        src/threads/windows/condition.c
+        src/threads/windows/thread.c
+    )
 endif()
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
