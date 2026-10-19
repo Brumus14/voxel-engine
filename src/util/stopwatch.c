@@ -3,25 +3,25 @@
 #include "platform.h"
 
 #ifdef PLATFORM_POSIX
-    #include <time.h>
+#include <time.h>
 #elif PLATFORM_WINDOWS
-    #include <windows.h>
+#include <windows.h>
 #endif
 
 double get_time() {
-    #ifdef PLATFORM_POSIX
-        struct timespec current_time;
-        clock_gettime(CLOCK_MONOTONIC, &current_time);
-        return (double)current_time->tv_sec + (double)current_time->tv_nsec / 1e9;
-    #elif PLATFORM_WINDOWS
-        LARGE_INTEGER counter;
-        LARGE_INTEGER frequency;
+#ifdef PLATFORM_POSIX
+    struct timespec current_time;
+    clock_gettime(CLOCK_MONOTONIC, &current_time);
+    return (double)current_time.tv_sec + (double)current_time.tv_nsec / 1e9;
+#elif PLATFORM_WINDOWS
+    LARGE_INTEGER counter;
+    LARGE_INTEGER frequency;
 
-        QueryPerformanceCounter(&counter);
-        QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&counter);
+    QueryPerformanceFrequency(&frequency);
 
-        return (double)counter.QuadPart / (double)frequency.QuadPart;
-    #endif
+    return (double)counter.QuadPart / (double)frequency.QuadPart;
+#endif
 }
 
 void stopwatch_start(struct stopwatch *stopwatch) {

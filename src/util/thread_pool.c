@@ -2,6 +2,7 @@
 
 #include "../data_structures/queue.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "../util/log.h"
 
 void *thread_pool_thread_main(void *arg) {

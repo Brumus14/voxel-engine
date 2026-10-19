@@ -4,6 +4,7 @@
 #include "glad/glad.h"
 #include "../util/gl.h"
 #include "../math/math_util.h"
+#include "../math/constants.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -220,7 +221,7 @@ void camera_update_frustum(struct camera *camera) {
     struct vec3d up = vec3d_normalised(vec3d_cross_product(right, forward));
 
     float half_v_side =
-        tan(camera->fov / 2 * (M_PI / 180)) * camera->far_plane_distance;
+        tan(camera->fov / 2 * (PI / 180)) * camera->far_plane_distance;
     float half_h_side = half_v_side * camera->aspect_ratio;
 
     camera->frustum.left_plane[0] = camera->view_projection_matrix[0][3] +

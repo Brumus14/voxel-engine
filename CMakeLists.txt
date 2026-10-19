@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 4.3)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+# set(CMAKE_C_EXTENSIONS OFF) TODO: Is this required for Windows?
 
 if(UNIX AND NOT APPLE)
     set(LINUX TRUE)

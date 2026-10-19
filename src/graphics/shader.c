@@ -1,6 +1,7 @@
 #include "shader.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "../util/gl.h"
 
 GLenum to_shader_type_gl(enum shader_type type) {
@@ -10,7 +11,7 @@ GLenum to_shader_type_gl(enum shader_type type) {
     case SHADER_TYPE_FRAGMENT:
         return GL_FRAGMENT_SHADER;
     default:
-    return GL_VERTEX_SHADER; // TODO: Panic?
+        return GL_VERTEX_SHADER; // TODO: Panic?
     }
 }
 
