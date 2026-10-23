@@ -43,6 +43,7 @@ struct player {
     bool sprinting;
     bool flying;
     bool moving;
+    bool collision_enabled;
     bool on_ground;
     bool manage_chunks;
     struct stopwatch on_ground_timer;

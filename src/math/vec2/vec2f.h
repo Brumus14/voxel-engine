@@ -9,6 +9,7 @@ struct vec2f {
 };
 
 #define VEC2F_ZERO (struct vec2f){0.0, 0.0}
+#define VEC2F_ONE (struct vec2f){1.0, 1.0}
 
 void vec2f_init(struct vec2f *v, float x, float y);
 void vec2f_normalise(struct vec2f *v);

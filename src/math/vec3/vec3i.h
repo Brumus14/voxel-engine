@@ -10,6 +10,7 @@ struct vec3i {
 };
 
 #define VEC3I_ZERO (struct vec3i){0, 0, 0}
+#define VEC3I_ONE (struct vec3i){1, 1, 1}
 
 void vec3i_init(struct vec3i *v, int x, int y, int z);
 void vec3i_normalise(struct vec3i *v);

@@ -13,6 +13,7 @@ struct vec3f {
 };
 
 #define VEC3F_ZERO (struct vec3f){0.0, 0.0, 0.0}
+#define VEC3F_ONE (struct vec3f){1.0, 1.0, 1.0}
 
 void vec3f_init(struct vec3f *v, float x, float y, float z);
 void vec3f_normalise(struct vec3f *vec);

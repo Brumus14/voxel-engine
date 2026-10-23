@@ -20,6 +20,7 @@ void player_init(struct player *player, struct vec3d position,
     player->camera = camera;
     player->sprinting = false;
     player->flying = true;
+    player->collision_enabled = false;
     player->moving = false;
     player->on_ground = false;
 
@@ -36,143 +37,152 @@ void update_movement(struct player *player, float delta_time,
     struct vec3d independent_velocity =
         vec3d_scalar_multiply(player->velocity, delta_time);
 
-    int min_x =
-        floor(player->position.x - COLLISION_BOX_X / 2 + COLLISION_EPSILON);
-    int max_x =
-        ceil(player->position.x + COLLISION_BOX_X / 2 - COLLISION_EPSILON) - 1;
-    int min_y =
-        floor(player->position.y - COLLISION_BOX_Y / 2 + COLLISION_EPSILON);
-    int max_y =
-        ceil(player->position.y + COLLISION_BOX_Y / 2 - COLLISION_EPSILON) - 1;
-    int min_z =
-        floor(player->position.z - COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
-    int max_z =
-        ceil(player->position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) - 1;
-
-    if (independent_velocity.x != 0) {
-        int new_min_x = floor(player->position.x + independent_velocity.x -
-                              COLLISION_BOX_X / 2 + COLLISION_EPSILON);
-        int new_max_x = ceil(player->position.x + independent_velocity.x +
-                             COLLISION_BOX_X / 2 - COLLISION_EPSILON) -
-                        1;
-
-        int x = independent_velocity.x > 0 ? new_max_x : new_min_x;
-        bool x_move = true;
-
-        for (int y = min_y; y <= max_y; y++) {
-            for (int z = min_z; z <= max_z; z++) {
-                struct vec3i block_position = {x, y, z};
-
-                if (block_is_collidable(
-                        world_get_block(world, block_position))) {
-                    x_move = false;
-                    break;
-                }
-            }
-
-            if (!x_move) {
-                break;
-            }
-        }
-
-        if (x_move) {
-            player->position.x += independent_velocity.x;
-        } else {
-            player->velocity.x = 0;
-            player->position.x =
-                x + 0.5 -
-                (0.5 + COLLISION_BOX_X / 2) * sign(independent_velocity.x);
-        }
-
-        min_x =
+    if (!player->collision_enabled) {
+        player->position.x += independent_velocity.x;
+        player->position.y += independent_velocity.y;
+        player->position.z += independent_velocity.z;
+    } else {
+        int min_x =
             floor(player->position.x - COLLISION_BOX_X / 2 + COLLISION_EPSILON);
-        max_x =
+        int max_x =
             ceil(player->position.x + COLLISION_BOX_X / 2 - COLLISION_EPSILON) -
             1;
-    }
-
-    if (independent_velocity.y != 0) {
-        int new_min_y = floor(player->position.y + independent_velocity.y -
-                              COLLISION_BOX_Y / 2 + COLLISION_EPSILON);
-        int new_max_y = ceil(player->position.y + independent_velocity.y +
-                             COLLISION_BOX_Y / 2 - COLLISION_EPSILON) -
-                        1;
-
-        int y = independent_velocity.y > 0 ? new_max_y : new_min_y;
-        bool y_move = true;
-
-        for (int x = min_x; x <= max_x; x++) {
-            for (int z = min_z; z <= max_z; z++) {
-                struct vec3i block_position = {x, y, z};
-
-                if (block_is_collidable(
-                        world_get_block(world, block_position))) {
-                    y_move = false;
-                    break;
-                }
-            }
-
-            if (!y_move) {
-                break;
-            }
-        }
-
-        if (y_move) {
-            player->position.y += independent_velocity.y;
-        } else {
-            player->velocity.y = 0;
-            player->position.y =
-                y + 0.5 -
-                (0.5 + COLLISION_BOX_Y / 2) * sign(independent_velocity.y);
-        }
-
-        min_y =
+        int min_y =
             floor(player->position.y - COLLISION_BOX_Y / 2 + COLLISION_EPSILON);
-        max_y =
+        int max_y =
             ceil(player->position.y + COLLISION_BOX_Y / 2 - COLLISION_EPSILON) -
             1;
-    }
+        int min_z =
+            floor(player->position.z - COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
+        int max_z =
+            ceil(player->position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
+            1;
 
-    if (independent_velocity.z != 0) {
-        int new_min_z = floor(player->position.z + independent_velocity.z -
-                              COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
-        int new_max_z = ceil(player->position.z + independent_velocity.z +
-                             COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
-                        1;
+        if (independent_velocity.x != 0) {
+            int new_min_x = floor(player->position.x + independent_velocity.x -
+                                  COLLISION_BOX_X / 2 + COLLISION_EPSILON);
+            int new_max_x = ceil(player->position.x + independent_velocity.x +
+                                 COLLISION_BOX_X / 2 - COLLISION_EPSILON) -
+                            1;
 
-        int z = independent_velocity.z > 0 ? new_max_z : new_min_z;
-        bool z_move = true;
+            int x = independent_velocity.x > 0 ? new_max_x : new_min_x;
+            bool x_move = true;
 
-        for (int x = min_x; x <= max_x; x++) {
             for (int y = min_y; y <= max_y; y++) {
-                struct vec3i block_position = {x, y, z};
+                for (int z = min_z; z <= max_z; z++) {
+                    struct vec3i block_position = {x, y, z};
 
-                if (block_is_collidable(
-                        world_get_block(world, block_position))) {
-                    z_move = false;
+                    if (block_is_collidable(
+                            world_get_block(world, block_position))) {
+                        x_move = false;
+                        break;
+                    }
+                }
+
+                if (!x_move) {
                     break;
                 }
             }
 
-            if (!z_move) {
-                break;
+            if (x_move) {
+                player->position.x += independent_velocity.x;
+            } else {
+                player->velocity.x = 0;
+                player->position.x =
+                    x + 0.5 -
+                    (0.5 + COLLISION_BOX_X / 2) * sign(independent_velocity.x);
             }
+
+            min_x = floor(player->position.x - COLLISION_BOX_X / 2 +
+                          COLLISION_EPSILON);
+            max_x = ceil(player->position.x + COLLISION_BOX_X / 2 -
+                         COLLISION_EPSILON) -
+                    1;
         }
 
-        if (z_move) {
-            player->position.z += independent_velocity.z;
-        } else {
-            player->velocity.z = 0;
-            player->position.z =
-                z + 0.5 -
-                (0.5 + COLLISION_BOX_Z / 2) * sign(independent_velocity.z);
+        if (independent_velocity.y != 0) {
+            int new_min_y = floor(player->position.y + independent_velocity.y -
+                                  COLLISION_BOX_Y / 2 + COLLISION_EPSILON);
+            int new_max_y = ceil(player->position.y + independent_velocity.y +
+                                 COLLISION_BOX_Y / 2 - COLLISION_EPSILON) -
+                            1;
+
+            int y = independent_velocity.y > 0 ? new_max_y : new_min_y;
+            bool y_move = true;
+
+            for (int x = min_x; x <= max_x; x++) {
+                for (int z = min_z; z <= max_z; z++) {
+                    struct vec3i block_position = {x, y, z};
+
+                    if (block_is_collidable(
+                            world_get_block(world, block_position))) {
+                        y_move = false;
+                        break;
+                    }
+                }
+
+                if (!y_move) {
+                    break;
+                }
+            }
+
+            if (y_move) {
+                player->position.y += independent_velocity.y;
+            } else {
+                player->velocity.y = 0;
+                player->position.y =
+                    y + 0.5 -
+                    (0.5 + COLLISION_BOX_Y / 2) * sign(independent_velocity.y);
+            }
+
+            min_y = floor(player->position.y - COLLISION_BOX_Y / 2 +
+                          COLLISION_EPSILON);
+            max_y = ceil(player->position.y + COLLISION_BOX_Y / 2 -
+                         COLLISION_EPSILON) -
+                    1;
         }
 
-        min_z =
-            floor(player->position.z - COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
-        max_z =
-            ceil(player->position.z + COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
-            1;
+        if (independent_velocity.z != 0) {
+            int new_min_z = floor(player->position.z + independent_velocity.z -
+                                  COLLISION_BOX_Z / 2 + COLLISION_EPSILON);
+            int new_max_z = ceil(player->position.z + independent_velocity.z +
+                                 COLLISION_BOX_Z / 2 - COLLISION_EPSILON) -
+                            1;
+
+            int z = independent_velocity.z > 0 ? new_max_z : new_min_z;
+            bool z_move = true;
+
+            for (int x = min_x; x <= max_x; x++) {
+                for (int y = min_y; y <= max_y; y++) {
+                    struct vec3i block_position = {x, y, z};
+
+                    if (block_is_collidable(
+                            world_get_block(world, block_position))) {
+                        z_move = false;
+                        break;
+                    }
+                }
+
+                if (!z_move) {
+                    break;
+                }
+            }
+
+            if (z_move) {
+                player->position.z += independent_velocity.z;
+            } else {
+                player->velocity.z = 0;
+                player->position.z =
+                    z + 0.5 -
+                    (0.5 + COLLISION_BOX_Z / 2) * sign(independent_velocity.z);
+            }
+
+            min_z = floor(player->position.z - COLLISION_BOX_Z / 2 +
+                          COLLISION_EPSILON);
+            max_z = ceil(player->position.z + COLLISION_BOX_Z / 2 -
+                         COLLISION_EPSILON) -
+                    1;
+        }
     }
 }
 
@@ -223,7 +233,8 @@ void player_update_movement(struct player *player, struct window *window,
     double delta_time = window_get_delta_time(window);
 
     bool previous_on_ground = player->on_ground;
-    player->on_ground = is_on_ground(world, player->position);
+    player->on_ground =
+        is_on_ground(world, player->position) && player->collision_enabled;
 
     if (!previous_on_ground && player->on_ground) {
         stopwatch_start(&player->on_ground_timer);
@@ -625,7 +636,8 @@ void player_place_block(struct player *player, struct world *world,
     cuboid_init(&new_block_cubiod, block_position.x, block_position.y,
                 block_position.z, 1, 1, 1);
 
-    if (!collision_aabb_3d(player_cuboid, new_block_cubiod)) {
+    if (!(player->collision_enabled &&
+          collision_aabb_3d(player_cuboid, new_block_cubiod))) {
         world_set_block(world, type, vec3i_from_vec3d_floor(block_position));
     }
 }

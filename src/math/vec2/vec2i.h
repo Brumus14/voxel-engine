@@ -9,6 +9,7 @@ struct vec2i {
 };
 
 #define VEC2I_ZERO (struct vec2i){0, 0}
+#define VEC2I_ONE (struct vec2i){1, 1}
 
 void vec2i_init(struct vec2i *v, int x, int y);
 void vec2i_to_glm(struct vec2i v, vec2 *destination);

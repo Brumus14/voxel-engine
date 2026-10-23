@@ -1,7 +1,5 @@
 #include "main_gui.h"
 
-#include "../math/math_util.h"
-
 void main_gui_init(struct main_gui *gui, struct window *window) {
     gui_init(&gui->gui, window);
 
@@ -25,9 +23,10 @@ void main_gui_init(struct main_gui *gui, struct window *window) {
 void main_gui_update(struct main_gui *gui) {
     gui_image_set_position(
         &gui->crosshair,
-        (struct vec2d){(double)gui->gui.window->width / 2,
-                       (double)gui->gui.window->height /
-                           2}); // only run when struct window size changed
+        (struct vec2d){
+            (double)gui->gui.window->width / 2,
+            (double)gui->gui.window->height /
+                2}); // TODO: only run when struct window size changed
 
     hotbar_update(&gui->hotbar, &gui->gui.window->keyboard,
                   &gui->gui.window->mouse);

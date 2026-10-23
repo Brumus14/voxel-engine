@@ -13,6 +13,7 @@ struct vec3d {
 };
 
 #define VEC3D_ZERO (struct vec3d){0.0, 0.0, 0.0}
+#define VEC3D_ONE (struct vec3d){1.0, 1.0, 1.0}
 
 void vec3d_init(struct vec3d *v, double x, double y, double z);
 double vec3d_magnitude(struct vec3d v);

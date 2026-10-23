@@ -1,5 +1,7 @@
+    Stop creating new opengl buffers instead resize
     Add sun
     Add day night cycle, improve sky
+    Add text rendering, for gui
     Low render distance (1,2) causes flashing on chunk modificiation
 Better window callback system such as for updating gui on resize
     Stop polling chunks and use queues instead
@@ -25,7 +27,6 @@ Save files
 Use const void *
 Order structs for padding and caching
 Moving fast loads tons of chunks that take ages to unload
-Maybe stop polling for chunk changes like MESH_NEEDED
 Reduce looping in main, such as loading chunks in player
 Add get functions to renderer
 Move keyboard bindings from main

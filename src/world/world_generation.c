@@ -3,22 +3,11 @@
 #include "FastNoiseLite.h"
 #include "chunk.h"
 #include "noise.h"
+#include <math.h>
 
 static inline int block_index(int x, int y, int z) {
     return z * CHUNK_SIZE_Y * CHUNK_SIZE_X + y * CHUNK_SIZE_X + x;
 }
-
-// void upscale_noise(double *output[CHUNK_SIZE_Z][CHUNK_SIZE_X], fnl_state
-// noise,
-//                    unsigned int level) {
-//     unsigned int step = pow(level, 2);
-//
-//     malloc(CHUNK_SIZE_Z / level * CHUNK_SIZE_X / level * sizeof(double));
-//
-//     for (int y = 0; y < CHUNK_SIZE_Z; y += step) {
-//         fnlGetNoise2D(noise, );
-//     }
-// }
 
 // TODO: This is very messy
 _Atomic(enum block_type) *
@@ -41,22 +30,29 @@ world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {
                chunk_position.y * CHUNK_SIZE_Y,
                chunk_position.z * CHUNK_SIZE_Z);
 
-    struct noise height_noise;
-    noise_init(&height_noise, NOISE_TYPE_PERLIN, NOISE_FRACTAL_TYPE_FBM, seed,
-               0.005, 5, 2, 0.5);
+    struct noise mountain_noise;
+    noise_init(&mountain_noise, NOISE_TYPE_PERLIN, NOISE_FRACTAL_TYPE_NONE,
+               seed, 0.005, 1, 2, 0.5);
+    float *mountain_values = noise_generate_upscaled_2d(
+        &mountain_noise, chunk_block_position.x, chunk_block_position.z,
+        CHUNK_SIZE_X, CHUNK_SIZE_Z, 1, 1);
 
-    float *height_values = noise_generate_upscaled_2d(
-        &height_noise, chunk_block_position.x, chunk_block_position.z,
-        CHUNK_SIZE_X, CHUNK_SIZE_Z, 4, 4);
-
-    struct noise cave_noise;
-    noise_init(&cave_noise, NOISE_TYPE_OPENSIMPLEX2S, NOISE_FRACTAL_TYPE_NONE,
-               seed, 0.02, 4, 8, 0.05);
-
-    float *cave_values = noise_generate_upscaled_3d(
-        &cave_noise, chunk_block_position.x, chunk_block_position.y,
-        chunk_block_position.z, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, 4, 4,
-        4);
+    // struct noise height_noise;
+    // noise_init(&height_noise, NOISE_TYPE_PERLIN, NOISE_FRACTAL_TYPE_FBM,
+    // seed,
+    //            0.005, 5, 2, 0.5);
+    // float *height_values = noise_generate_upscaled_2d(
+    //     &height_noise, chunk_block_position.x, chunk_block_position.z,
+    //     CHUNK_SIZE_X, CHUNK_SIZE_Z, 4, 4);
+    //
+    // struct noise cave_noise;
+    // noise_init(&cave_noise, NOISE_TYPE_OPENSIMPLEX2S,
+    // NOISE_FRACTAL_TYPE_NONE,
+    //            seed, 0.02, 4, 8, 0.05);
+    // float *cave_values = noise_generate_upscaled_3d(
+    //     &cave_noise, chunk_block_position.x, chunk_block_position.y,
+    //     chunk_block_position.z, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, 4,
+    //     4, 4);
 
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         int position_z = chunk_block_position.z + z;
@@ -64,32 +60,44 @@ world_generation_chunk_terrain(struct vec3i chunk_position, int seed) {
         for (int x = 0; x < CHUNK_SIZE_X; x++) {
             int position_x = chunk_block_position.x + x;
 
-            float height_value = height_values[z * CHUNK_SIZE_X + x] * 128;
+            // float height_noise_value = height_values[z * CHUNK_SIZE_X + x];
+
+            float mountain_noise_value =
+                mountain_values[z * CHUNK_SIZE_X + x] / 2 + 0.5;
+
+            // float height_value =
+            float height_value = mountain_noise_value * 256;
+            //     (pow(1000, mountain_noise_value) - 1) / (1000 - 1);
+            // 1 - fabs(mountain_noise_value);
+            // (exp(8 * mountain_noise_value) - 1) / (exp(8) - 1);
+            // height_value *= 512;
+            // height_value += height_noise_value * 64;
 
             for (int y = 0; y < CHUNK_SIZE_Y; y++) {
                 int position_y = chunk_block_position.y + y;
 
                 enum block_type type = BLOCK_TYPE_EMPTY;
 
-                if (cave_values[(z * CHUNK_SIZE_Y + y) * CHUNK_SIZE_X + x] >
-                    0.3) {
-                    type = BLOCK_TYPE_EMPTY;
-                } else {
-                    if (position_y < height_value - 8) {
-                        type = BLOCK_TYPE_STONE;
-                    } else if (position_y < height_value) {
-                        type = BLOCK_TYPE_DIRT;
-                    } else if (position_y == ceil(height_value)) {
-                        type = BLOCK_TYPE_GRASS;
-                    }
+                // if (cave_values[(z * CHUNK_SIZE_Y + y) * CHUNK_SIZE_X + x] >
+                //     0.3) {
+                //     type = BLOCK_TYPE_EMPTY;
+                // } else {
+                if (position_y < height_value - 8) {
+                    type = BLOCK_TYPE_STONE;
+                } else if (position_y < height_value) {
+                    type = BLOCK_TYPE_DIRT;
+                } else if (position_y == ceil(height_value)) {
+                    type = BLOCK_TYPE_GRASS;
                 }
+                // }
 
                 blocks[block_index(x, y, z)] = type;
             }
         }
     }
 
-    free(height_values);
+    // free(height_values);
+    free(mountain_values);
 
     // better ore generation
     // use octaves and make noise generator abstraction

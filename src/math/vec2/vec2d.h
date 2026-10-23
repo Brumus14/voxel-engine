@@ -9,6 +9,7 @@ struct vec2d {
 };
 
 #define VEC2D_ZERO (struct vec2d){0.0, 0.0}
+#define VEC2D_ONE (struct vec2d){1.0, 1.0}
 
 void vec2d_init(struct vec2d *v, double x, double y);
 void vec2d_normalise(struct vec2d *v);

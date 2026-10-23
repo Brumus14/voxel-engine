@@ -41,6 +41,7 @@ void chunk_destroy(struct chunk *chunk) {
 }
 
 void chunk_update_buffers(struct chunk *chunk) {
+    // TODO: Instead resize the buffer
     bo_bind(&chunk->ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
                  sizeof(struct face) * chunk->faces.element_count,
@@ -188,8 +189,7 @@ void chunk_generate_mesh(struct chunk *chunk, struct chunk **neighbors) {
     }
 }
 
-enum block_type chunk_get_block(struct chunk *chunk,
-                                       struct vec3i position) {
+enum block_type chunk_get_block(struct chunk *chunk, struct vec3i position) {
     if (atomic_load(&chunk->blocks_state) != CHUNK_BLOCKS_STATE_GENERATED) {
         return BLOCK_TYPE_EMPTY;
     }
@@ -200,7 +200,7 @@ enum block_type chunk_get_block(struct chunk *chunk,
 }
 
 void chunk_set_block(struct chunk *chunk, struct vec3i position,
-                            enum block_type type) {
+                     enum block_type type) {
     if (atomic_load(&chunk->blocks_state) != CHUNK_BLOCKS_STATE_GENERATED) {
         return;
     }

@@ -1,3 +1,4 @@
+#include "game/pause_gui.h"
 #include "glad/glad.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,10 +57,13 @@ int main() {
     struct main_gui main_gui;
     main_gui_init(&main_gui, &window);
 
+    struct pause_gui pause_gui;
+    pause_gui_init(&pause_gui, &window);
+
     // 21474836.0
     // 2147483.0
     struct player player;
-    player_init(&player, (struct vec3d){8.0, 8.0, 8.0}, VEC3D_ZERO, 0.05,
+    player_init(&player, (struct vec3d){8.0, 64.0, 8.0}, VEC3D_ZERO, 0.05,
                 &camera);
 
     while (!window_should_close(&window)) {
@@ -69,18 +73,23 @@ int main() {
         window_update_input(&window);
 
         main_gui_update(&main_gui);
+        pause_gui_update(&pause_gui);
 
         // printf("%f\n", 1.0 / window_get_delta_time(&window));
+
+        if (keyboard_key_just_down(&window.keyboard, KEYCODE_I)) {
+            player.collision_enabled = !player.collision_enabled;
+        }
+
+        if (keyboard_key_just_down(&window.keyboard, KEYCODE_O)) {
+            player.flying = !player.flying;
+        }
 
         static bool wireframe = false;
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_P)) {
             wireframe = !wireframe;
             renderer_set_polygon_mode(wireframe ? POLYGON_MODE_LINE
                                                 : POLYGON_MODE_FILL);
-        }
-
-        if (keyboard_key_just_down(&window.keyboard, KEYCODE_O)) {
-            player.flying = !player.flying;
         }
 
         if (keyboard_key_just_down(&window.keyboard, KEYCODE_ESCAPE)) {
@@ -106,6 +115,10 @@ int main() {
         renderer_clear_depth_buffer();
 
         main_gui_draw(&main_gui);
+
+        if (state.paused) {
+            pause_gui_draw(&pause_gui);
+        }
 
         window_swap_buffers(&window);
     }
